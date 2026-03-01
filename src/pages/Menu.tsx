@@ -9,6 +9,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, MapPin, UtensilsCrossed } from "lucide-react";
 import { toast } from "sonner";
+import logoRigos from "@/assets/logo-rigos.png";
 
 const Menu = () => {
   const [searchParams] = useSearchParams();
@@ -68,6 +69,7 @@ const Menu = () => {
           <button onClick={() => navigate("/")} className="text-foreground">
             <ArrowLeft size={24} />
           </button>
+          <img src={logoRigos} alt="Rigo's" className="h-10 w-10" />
           <div className="flex-1">
             <h1 className="font-display text-2xl leading-none text-foreground">
               Rigo's Dogos

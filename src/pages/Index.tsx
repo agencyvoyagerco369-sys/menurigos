@@ -4,6 +4,7 @@ import { tables } from "@/data/products";
 import { motion } from "framer-motion";
 import { UtensilsCrossed, Truck, MapPin, ChefHat } from "lucide-react";
 import { useState } from "react";
+import logoRigos from "@/assets/logo-rigos.png";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -29,15 +30,12 @@ const Index = () => {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-sm text-center"
       >
-        {/* Logo area */}
-        <div className="mx-auto mb-2 flex h-24 w-24 items-center justify-center rounded-full bg-primary shadow-brand">
-          <span className="text-5xl">🌭</span>
-        </div>
-        <h1 className="mb-1 font-display text-5xl text-gradient">Rigo's</h1>
-        <h2 className="mb-1 font-display text-2xl tracking-wider text-foreground">
-          Dogos y Hamburguesas
-        </h2>
-        <p className="mb-8 text-sm text-muted-foreground">Desde 1996</p>
+        {/* Logo */}
+        <img
+          src={logoRigos}
+          alt="Rigo's Dogos y Hamburguesas"
+          className="mx-auto mb-6 h-40 w-40 drop-shadow-2xl"
+        />
 
         {/* Options */}
         {!showTablePicker ? (
