@@ -1,16 +1,16 @@
-import { useOrders, Order } from "@/context/OrdersContext";
+import { useOrders, Order, OrderStatus } from "@/context/OrdersContext";
 import { cn } from "@/lib/utils";
 import { Clock, ChefHat, CheckCircle, Truck, UtensilsCrossed, MapPin } from "lucide-react";
 
-const statusConfig: Record<Order["status"], { label: string; color: string; icon: React.ReactNode }> = {
-  pendiente: { label: "Pendiente", color: "bg-accent text-accent-foreground", icon: <Clock size={16} /> },
+const statusConfig: Record<OrderStatus, { label: string; color: string; icon: React.ReactNode }> = {
+  recibido: { label: "Recibido", color: "bg-accent text-accent-foreground", icon: <Clock size={16} /> },
   preparando: { label: "Preparando", color: "bg-primary text-primary-foreground", icon: <ChefHat size={16} /> },
   listo: { label: "Listo", color: "bg-success text-success-foreground", icon: <CheckCircle size={16} /> },
   entregado: { label: "Entregado", color: "bg-muted text-muted-foreground", icon: <Truck size={16} /> },
 };
 
-const nextStatus: Record<Order["status"], Order["status"] | null> = {
-  pendiente: "preparando",
+const nextStatus: Record<OrderStatus, OrderStatus | null> = {
+  recibido: "preparando",
   preparando: "listo",
   listo: "entregado",
   entregado: null,
@@ -48,7 +48,6 @@ const Admin = () => {
                   key={order.id}
                   className="rounded-xl border border-border bg-card p-4 shadow-card"
                 >
-                  {/* Header */}
                   <div className="mb-3 flex items-center justify-between">
                     <div>
                       <p className="text-xs text-muted-foreground">{order.id}</p>
@@ -75,7 +74,6 @@ const Admin = () => {
                     </span>
                   </div>
 
-                  {/* Customer info for delivery */}
                   {order.orderType === "domicilio" && order.customerName && (
                     <div className="mb-3 rounded-lg bg-muted p-2 text-xs text-foreground">
                       <p className="font-semibold">{order.customerName}</p>
@@ -84,24 +82,25 @@ const Admin = () => {
                     </div>
                   )}
 
-                  {/* Items */}
                   <div className="mb-3 space-y-1">
                     {order.items.map((item) => (
-                      <div
-                        key={item.product.id}
-                        className="flex justify-between text-sm text-foreground"
-                      >
-                        <span>
-                          {item.quantity}x {item.product.name}
-                        </span>
-                        <span className="text-muted-foreground">
-                          ${item.product.price * item.quantity}
-                        </span>
+                      <div key={item.id} className="text-sm text-foreground">
+                        <div className="flex justify-between">
+                          <span>{item.quantity}x {item.product.name}</span>
+                          <span className="text-muted-foreground">${item.unitPrice * item.quantity}</span>
+                        </div>
+                        {item.extras.length > 0 && (
+                          <p className="ml-4 text-xs text-muted-foreground">
+                            + {item.extras.map((e) => e.name).join(", ")}
+                          </p>
+                        )}
+                        {item.notes && (
+                          <p className="ml-4 text-xs italic text-muted-foreground">"{item.notes}"</p>
+                        )}
                       </div>
                     ))}
                   </div>
 
-                  {/* Total & action */}
                   <div className="flex items-center justify-between border-t border-border pt-3">
                     <span className="text-lg font-bold text-primary">${order.total}</span>
                     {next && (

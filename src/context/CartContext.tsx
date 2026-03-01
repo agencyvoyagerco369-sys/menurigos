@@ -2,8 +2,12 @@ import React, { createContext, useContext, useState, useCallback } from "react";
 import { Product } from "@/data/products";
 
 export interface CartItem {
+  id: string; // unique per cart entry (product + extras combo)
   product: Product;
+  extras: Product[];
+  notes: string;
   quantity: number;
+  unitPrice: number; // product.price + sum of extras
 }
 
 export type OrderType = "mesa" | "domicilio";
@@ -13,10 +17,10 @@ interface CartContextType {
   orderType: OrderType | null;
   tableNumber: number | null;
   setOrderType: (type: OrderType) => void;
-  setTableNumber: (num: number) => void;
-  addItem: (product: Product) => void;
-  removeItem: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  setTableNumber: (num: number | null) => void;
+  addItem: (product: Product, extras: Product[], notes: string, quantity: number) => void;
+  removeItem: (cartItemId: string) => void;
+  updateQuantity: (cartItemId: string, quantity: number) => void;
   clearCart: () => void;
   total: number;
   itemCount: number;
@@ -29,28 +33,33 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [orderType, setOrderType] = useState<OrderType | null>(null);
   const [tableNumber, setTableNumber] = useState<number | null>(null);
 
-  const addItem = useCallback((product: Product) => {
-    setItems((prev) => {
-      const existing = prev.find((i) => i.product.id === product.id);
-      if (existing) {
-        return prev.map((i) =>
-          i.product.id === product.id ? { ...i, quantity: i.quantity + 1 } : i
-        );
-      }
-      return [...prev, { product, quantity: 1 }];
-    });
+  const addItem = useCallback(
+    (product: Product, extras: Product[], notes: string, quantity: number) => {
+      const extrasTotal = extras.reduce((s, e) => s + e.price, 0);
+      const unitPrice = product.price + extrasTotal;
+      const newItem: CartItem = {
+        id: `${product.id}-${Date.now()}`,
+        product,
+        extras,
+        notes,
+        quantity,
+        unitPrice,
+      };
+      setItems((prev) => [...prev, newItem]);
+    },
+    []
+  );
+
+  const removeItem = useCallback((cartItemId: string) => {
+    setItems((prev) => prev.filter((i) => i.id !== cartItemId));
   }, []);
 
-  const removeItem = useCallback((productId: string) => {
-    setItems((prev) => prev.filter((i) => i.product.id !== productId));
-  }, []);
-
-  const updateQuantity = useCallback((productId: string, quantity: number) => {
+  const updateQuantity = useCallback((cartItemId: string, quantity: number) => {
     if (quantity <= 0) {
-      setItems((prev) => prev.filter((i) => i.product.id !== productId));
+      setItems((prev) => prev.filter((i) => i.id !== cartItemId));
     } else {
       setItems((prev) =>
-        prev.map((i) => (i.product.id === productId ? { ...i, quantity } : i))
+        prev.map((i) => (i.id === cartItemId ? { ...i, quantity } : i))
       );
     }
   }, []);
@@ -59,7 +68,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setItems([]);
   }, []);
 
-  const total = items.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
+  const total = items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
   const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
 
   return (
