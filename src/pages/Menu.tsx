@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
-import { products, categories, Product } from "@/data/products";
+import { useProducts } from "@/context/ProductsContext";
+import { Product } from "@/data/products";
 import ProductCard from "@/components/ProductCard";
 import ProductDetail from "@/components/ProductDetail";
 import FloatingCart from "@/components/FloatingCart";
@@ -11,13 +12,15 @@ import { motion } from "framer-motion";
 const Menu = () => {
   const [searchParams] = useSearchParams();
   const { tableNumber } = useCart();
+  const { products, categories } = useProducts();
   const [activeCategory, setActiveCategory] = useState("dogos");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const mesa = tableNumber || Number(searchParams.get("mesa")) || null;
 
+  // Only show active products; soldOut ones show but greyed out
   const filtered = products.filter(
-    (p) => p.category === activeCategory
+    (p) => p.category === activeCategory && p.active
   );
 
   return (
