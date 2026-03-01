@@ -16,7 +16,7 @@ const categoryEmoji: Record<string, string> = {
 };
 
 const ProductCard = ({ product, onSelect }: ProductCardProps) => {
-  const isAvailable = product.active;
+  const isAvailable = product.active && !product.soldOut;
 
   return (
     <button
