@@ -7,6 +7,7 @@ import { CartProvider } from "@/context/CartContext";
 import { OrdersProvider } from "@/context/OrdersContext";
 import Index from "./pages/Index";
 import Menu from "./pages/Menu";
+import MesaLanding from "./pages/MesaLanding";
 import Admin from "./pages/Admin";
 import OrderConfirmed from "./pages/OrderConfirmed";
 import NotFound from "./pages/NotFound";
@@ -23,6 +24,7 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/mesa/:mesaId" element={<MesaLanding />} />
               <Route path="/menu" element={<Menu />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="/pedido-confirmado" element={<OrderConfirmed />} />
