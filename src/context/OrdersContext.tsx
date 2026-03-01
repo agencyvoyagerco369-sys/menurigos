@@ -3,6 +3,19 @@ import { CartItem, OrderType } from "./CartContext";
 
 export type OrderStatus = "recibido" | "preparando" | "listo" | "entregado";
 
+export interface DeliveryDetails {
+  type: "casa" | "departamento";
+  street: string;
+  colony: string;
+  references: string;
+  aptNumber?: string;
+  floor?: string;
+  hasControlledAccess: boolean;
+  accessInstructions?: string;
+  paymentMethod: "efectivo" | "transferencia";
+  additionalNotes: string;
+}
+
 export interface Order {
   id: string;
   items: CartItem[];
@@ -11,6 +24,7 @@ export interface Order {
   customerName?: string;
   customerPhone?: string;
   customerAddress?: string;
+  deliveryDetails?: DeliveryDetails;
   total: number;
   status: OrderStatus;
   createdAt: Date;
