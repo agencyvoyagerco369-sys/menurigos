@@ -10,6 +10,8 @@ import Menu from "./pages/Menu";
 import MesaLanding from "./pages/MesaLanding";
 import Admin from "./pages/Admin";
 import OrderTracking from "./pages/OrderTracking";
+import DeliveryCheckout from "./pages/DeliveryCheckout";
+import DeliverySuccess from "./pages/DeliverySuccess";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +30,8 @@ const App = () => (
               <Route path="/menu" element={<Menu />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="/pedido/:orderId" element={<OrderTracking />} />
+              <Route path="/checkout-domicilio" element={<DeliveryCheckout />} />
+              <Route path="/pedido-domicilio/:orderId" element={<DeliverySuccess />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

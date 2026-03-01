@@ -14,6 +14,14 @@ const FloatingCart = () => {
 
   const handleSendOrder = () => {
     if (items.length === 0) return;
+
+    // If delivery, go to checkout page instead of sending directly
+    if (orderType === "domicilio") {
+      setOpen(false);
+      navigate("/checkout-domicilio");
+      return;
+    }
+
     const orderId = addOrder({
       items: [...items],
       orderType: orderType || "mesa",
@@ -25,6 +33,8 @@ const FloatingCart = () => {
     toast.success("¡Pedido enviado a cocina! 🍳");
     navigate(`/pedido/${orderId}`);
   };
+
+  const isDelivery = orderType === "domicilio";
 
   return (
     <>
@@ -154,7 +164,7 @@ const FloatingCart = () => {
                       onClick={handleSendOrder}
                       className="mt-4 w-full rounded-2xl bg-destructive py-4 text-center text-lg font-bold text-destructive-foreground shadow-[0_4px_20px_-4px_hsl(0_76%_45%_/_0.4)]"
                     >
-                      Enviar pedido a cocina 🍳
+                      {isDelivery ? "Continuar al envío 🛵" : "Enviar pedido a cocina 🍳"}
                     </motion.button>
                   </>
                 )}
