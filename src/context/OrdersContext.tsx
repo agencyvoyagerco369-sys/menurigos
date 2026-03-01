@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
 import { CartItem, OrderType } from "./CartContext";
 
+export type OrderStatus = "recibido" | "preparando" | "listo" | "entregado";
+
 export interface Order {
   id: string;
   items: CartItem[];
@@ -10,14 +12,15 @@ export interface Order {
   customerPhone?: string;
   customerAddress?: string;
   total: number;
-  status: "pendiente" | "preparando" | "listo" | "entregado";
+  status: OrderStatus;
   createdAt: Date;
 }
 
 interface OrdersContextType {
   orders: Order[];
-  addOrder: (order: Omit<Order, "id" | "createdAt" | "status">) => void;
-  updateOrderStatus: (id: string, status: Order["status"]) => void;
+  addOrder: (order: Omit<Order, "id" | "createdAt" | "status">) => string;
+  updateOrderStatus: (id: string, status: OrderStatus) => void;
+  getOrder: (id: string) => Order | undefined;
 }
 
 const OrdersContext = createContext<OrdersContextType | undefined>(undefined);
@@ -26,23 +29,30 @@ export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [orders, setOrders] = useState<Order[]>([]);
 
   const addOrder = useCallback((order: Omit<Order, "id" | "createdAt" | "status">) => {
+    const id = `ORD-${Date.now().toString(36).toUpperCase()}`;
     const newOrder: Order = {
       ...order,
-      id: `ORD-${Date.now()}`,
-      status: "pendiente",
+      id,
+      status: "recibido",
       createdAt: new Date(),
     };
     setOrders((prev) => [newOrder, ...prev]);
+    return id;
   }, []);
 
-  const updateOrderStatus = useCallback((id: string, status: Order["status"]) => {
+  const updateOrderStatus = useCallback((id: string, status: OrderStatus) => {
     setOrders((prev) =>
       prev.map((o) => (o.id === id ? { ...o, status } : o))
     );
   }, []);
 
+  const getOrder = useCallback(
+    (id: string) => orders.find((o) => o.id === id),
+    [orders]
+  );
+
   return (
-    <OrdersContext.Provider value={{ orders, addOrder, updateOrderStatus }}>
+    <OrdersContext.Provider value={{ orders, addOrder, updateOrderStatus, getOrder }}>
       {children}
     </OrdersContext.Provider>
   );

@@ -9,7 +9,7 @@ import Index from "./pages/Index";
 import Menu from "./pages/Menu";
 import MesaLanding from "./pages/MesaLanding";
 import Admin from "./pages/Admin";
-import OrderConfirmed from "./pages/OrderConfirmed";
+import OrderTracking from "./pages/OrderTracking";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,7 +27,7 @@ const App = () => (
               <Route path="/mesa/:mesaId" element={<MesaLanding />} />
               <Route path="/menu" element={<Menu />} />
               <Route path="/admin" element={<Admin />} />
-              <Route path="/pedido-confirmado" element={<OrderConfirmed />} />
+              <Route path="/pedido/:orderId" element={<OrderTracking />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

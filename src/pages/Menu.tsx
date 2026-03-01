@@ -1,182 +1,77 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
-import { useOrders } from "@/context/OrdersContext";
-import { products } from "@/data/products";
-import CategoryTabs from "@/components/CategoryTabs";
-import MenuItemCard from "@/components/MenuItemCard";
-import CartDrawer from "@/components/CartDrawer";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { products, categories, Product } from "@/data/products";
+import ProductCard from "@/components/ProductCard";
+import ProductDetail from "@/components/ProductDetail";
+import FloatingCart from "@/components/FloatingCart";
+import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { ArrowLeft, MapPin, UtensilsCrossed } from "lucide-react";
-import { toast } from "sonner";
-import logoRigos from "@/assets/logo-rigos.png";
 
 const Menu = () => {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const { items, total, orderType, tableNumber, clearCart } = useCart();
-  const { addOrder } = useOrders();
+  const { tableNumber } = useCart();
   const [activeCategory, setActiveCategory] = useState("dogos");
-  const [search, setSearch] = useState("");
-  const [showCheckout, setShowCheckout] = useState(false);
-  const [customerName, setCustomerName] = useState("");
-  const [customerPhone, setCustomerPhone] = useState("");
-  const [customerAddress, setCustomerAddress] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-  const type = orderType || (searchParams.get("type") as "mesa" | "domicilio") || "mesa";
   const mesa = tableNumber || Number(searchParams.get("mesa")) || null;
 
   const filtered = products.filter(
-    (p) =>
-      p.active &&
-      p.category === activeCategory &&
-      p.name.toLowerCase().includes(search.toLowerCase())
+    (p) => p.category === activeCategory
   );
-
-  const handleCheckout = () => {
-    if (items.length === 0) {
-      toast.error("Agrega productos a tu pedido");
-      return;
-    }
-    setShowCheckout(true);
-  };
-
-  const handleConfirmOrder = () => {
-    if (type === "domicilio" && (!customerName || !customerPhone || !customerAddress)) {
-      toast.error("Completa tus datos de envío");
-      return;
-    }
-    addOrder({
-      items: [...items],
-      orderType: type,
-      tableNumber: mesa,
-      customerName,
-      customerPhone,
-      customerAddress,
-      total,
-    });
-    clearCart();
-    setShowCheckout(false);
-    toast.success("¡Pedido enviado! 🎉");
-    navigate("/pedido-confirmado");
-  };
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-gradient-brand px-4 pb-4 pt-5">
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate("/")} className="text-foreground">
-            <ArrowLeft size={24} />
-          </button>
-          <img src={logoRigos} alt="Rigo's" className="h-10 w-10" />
-          <div className="flex-1">
-            <h1 className="font-display text-2xl leading-none text-foreground">
-              Rigo's Dogos
-            </h1>
-            <p className="flex items-center gap-1 text-xs text-muted-foreground">
-              {type === "mesa" ? (
-                <>
-                  <UtensilsCrossed size={12} /> Mesa {mesa}
-                </>
-              ) : (
-                <>
-                  <MapPin size={12} /> Pedido a domicilio
-                </>
-              )}
-            </p>
-          </div>
+      {/* Sticky header */}
+      <header className="sticky top-0 z-30 bg-secondary shadow-[0_2px_12px_rgba(0,0,0,0.3)]">
+        <div className="flex items-center justify-between px-4 py-3">
+          <h1 className="font-display text-2xl tracking-wide text-accent">Rigo's</h1>
+          {mesa && (
+            <span className="rounded-lg bg-destructive px-3 py-1 text-xs font-bold text-destructive-foreground">
+              Mesa {mesa}
+            </span>
+          )}
         </div>
 
-        {/* Search */}
-        <input
-          type="text"
-          placeholder="Buscar producto..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="mt-3 w-full rounded-lg bg-muted px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-        />
-
-        {/* Categories */}
-        <div className="mt-3">
-          <CategoryTabs activeCategory={activeCategory} onSelect={setActiveCategory} />
+        {/* Category tabs */}
+        <div className="flex gap-1.5 overflow-x-auto px-4 pb-3 scrollbar-none">
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setActiveCategory(cat.id)}
+              className={cn(
+                "flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold transition-all",
+                activeCategory === cat.id
+                  ? "bg-success text-success-foreground shadow-[0_2px_10px_-2px_hsl(123_46%_34%_/_0.5)]"
+                  : "bg-muted/60 text-muted-foreground"
+              )}
+            >
+              <span>{cat.icon}</span>
+              <span>{cat.name}</span>
+            </button>
+          ))}
         </div>
       </header>
 
-      {/* Products */}
-      <main className="space-y-2 px-4 pt-4">
-        {filtered.length === 0 ? (
-          <p className="py-12 text-center text-muted-foreground">No se encontraron productos</p>
-        ) : (
-          filtered.map((product) => <MenuItemCard key={product.id} product={product} />)
-        )}
+      {/* Product list */}
+      <main className="space-y-2.5 px-4 pt-4">
+        {filtered.map((product, i) => (
+          <motion.div
+            key={product.id}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: Math.min(i * 0.03, 0.3), duration: 0.3 }}
+          >
+            <ProductCard product={product} onSelect={setSelectedProduct} />
+          </motion.div>
+        ))}
       </main>
 
-      {/* Cart floating button */}
-      <CartDrawer onCheckout={handleCheckout} />
+      {/* Product detail sheet */}
+      <ProductDetail product={selectedProduct} onClose={() => setSelectedProduct(null)} />
 
-      {/* Checkout modal */}
-      {showCheckout && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="fixed inset-0 z-[60] flex items-end justify-center bg-background/60 backdrop-blur-sm sm:items-center"
-        >
-          <motion.div
-            initial={{ y: 50 }}
-            animate={{ y: 0 }}
-            className="w-full max-w-md rounded-t-2xl bg-card p-6 shadow-card sm:rounded-2xl"
-          >
-            <h2 className="mb-4 font-display text-2xl text-card-foreground">Confirmar Pedido</h2>
-
-            {type === "mesa" && (
-              <p className="mb-4 rounded-lg bg-muted p-3 text-sm text-foreground">
-                <UtensilsCrossed size={14} className="mr-1 inline" />
-                Pedido para <strong>Mesa {mesa}</strong> · Total: <strong>${total}</strong>
-              </p>
-            )}
-
-            {type === "domicilio" && (
-              <div className="mb-4 space-y-3">
-                <input
-                  placeholder="Tu nombre"
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  className="w-full rounded-lg bg-muted px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-                <input
-                  placeholder="Teléfono"
-                  value={customerPhone}
-                  onChange={(e) => setCustomerPhone(e.target.value)}
-                  className="w-full rounded-lg bg-muted px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-                <input
-                  placeholder="Dirección de entrega"
-                  value={customerAddress}
-                  onChange={(e) => setCustomerAddress(e.target.value)}
-                  className="w-full rounded-lg bg-muted px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-                <p className="text-right text-sm font-bold text-primary">Total: ${total}</p>
-              </div>
-            )}
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowCheckout(false)}
-                className="flex-1 rounded-lg bg-muted py-3 font-semibold text-foreground"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleConfirmOrder}
-                className="flex-1 rounded-lg bg-success py-3 font-bold text-success-foreground"
-              >
-                Enviar Pedido
-              </button>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
+      {/* Floating cart */}
+      <FloatingCart />
     </div>
   );
 };
