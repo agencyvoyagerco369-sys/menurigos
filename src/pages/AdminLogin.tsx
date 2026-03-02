@@ -19,28 +19,27 @@ const AdminLogin = () => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
 
-      if (error) {
+      if (error || !data.user) {
         toast.error("Credenciales incorrectas");
-        setLoading(false);
         return;
       }
 
-      // Check admin/staff role
-      const { data: roles, error: rolesError } = await supabase
+      const { data: accessRole, error: roleError } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", data.user.id);
+        .eq("user_id", data.user.id)
+        .in("role", ["admin", "staff"])
+        .maybeSingle();
 
-      if (rolesError) {
-        console.error("Error fetching roles:", rolesError);
+      if (roleError) {
+        console.error("Error validating admin access:", roleError);
+        toast.error("No pude validar tus permisos. Intenta de nuevo.");
+        return;
       }
 
-      const hasAccess = roles?.some((r) => r.role === "admin" || r.role === "staff");
-
-      if (!hasAccess) {
-        await supabase.auth.signOut();
+      if (!accessRole) {
+        void supabase.auth.signOut();
         toast.error("No tienes acceso al panel");
-        setLoading(false);
         return;
       }
 

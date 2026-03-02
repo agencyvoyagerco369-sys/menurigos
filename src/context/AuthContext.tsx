@@ -1,6 +1,6 @@
 import { useEffect, useState, createContext, useContext, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import type { User } from "@supabase/supabase-js";
+import type { Session, User } from "@supabase/supabase-js";
 
 interface AuthCtx {
   user: User | null;
@@ -19,35 +19,59 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   const fetchRole = useCallback(async (userId: string) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("user_roles")
       .select("role")
       .eq("user_id", userId)
-      .limit(1)
-      .single();
-    setRole(data?.role ?? null);
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error fetching role:", error);
+      setRole(null);
+      return null;
+    }
+
+    const nextRole = data?.role ?? null;
+    setRole(nextRole);
+    return nextRole;
   }, []);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    let isMounted = true;
+
+    const applySession = async (session: Session | null) => {
       const u = session?.user ?? null;
+      if (!isMounted) return;
+
       setUser(u);
-      if (u) {
-        await fetchRole(u.id);
-      } else {
+
+      if (!u) {
         setRole(null);
+        setLoading(false);
+        return;
       }
-      setLoading(false);
+
+      await fetchRole(u.id);
+      if (isMounted) setLoading(false);
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      void applySession(session);
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      const u = session?.user ?? null;
-      setUser(u);
-      if (u) fetchRole(u.id);
-      else setLoading(false);
-    });
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        void applySession(session);
+      })
+      .catch((err) => {
+        console.error("Error getting session:", err);
+        if (isMounted) setLoading(false);
+      });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, [fetchRole]);
 
   const signOut = async () => {
