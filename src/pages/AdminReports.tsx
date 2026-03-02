@@ -1,32 +1,17 @@
-import { useOrders, Order } from "@/context/OrdersContext";
+import { useOrders } from "@/context/OrdersContext";
 import { categories } from "@/data/products";
-import { cn } from "@/lib/utils";
+import { T, ACCENT } from "@/lib/admin-theme";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, ShoppingCart, TrendingUp, Receipt, Share2, UtensilsCrossed, Truck } from "lucide-react";
 import { useState, useMemo } from "react";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from "@/components/ui/chart";
+import { Calendar } from "@/components/ui/calendar";
+import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 
-const D = {
-  card: "#1A1F2E",
-  border: "#252D3D",
-  text: "#F1F3F8",
-  textMuted: "#8892A6",
-  textDim: "#5C6478",
-  brand: "#D42B2B",
-};
-
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
-const chartConfig: ChartConfig = { pedidos: { label: "Pedidos", color: "#3B82F6" } };
+const chartConfig: ChartConfig = { pedidos: { label: "Pedidos", color: ACCENT.blue } };
 
 const AdminReports = () => {
   const { orders } = useOrders();
@@ -84,21 +69,21 @@ const AdminReports = () => {
   };
 
   const stats = [
-    { label: "Ventas totales", value: `$${totalSales.toLocaleString()}`, icon: TrendingUp, color: "#10B981" },
-    { label: "Pedidos completados", value: totalCompleted, icon: ShoppingCart, color: "#3B82F6" },
-    { label: "Mesa / Domicilio", value: `${mesaOrders} / ${deliveryOrders}`, icon: UtensilsCrossed, color: "#F59E0B" },
-    { label: "Ticket promedio", value: `$${avgTicket}`, icon: Receipt, color: "#A78BFA" },
+    { label: "Ventas totales", value: `$${totalSales.toLocaleString()}`, icon: TrendingUp, color: ACCENT.green },
+    { label: "Pedidos completados", value: totalCompleted, icon: ShoppingCart, color: ACCENT.blue },
+    { label: "Mesa / Domicilio", value: `${mesaOrders} / ${deliveryOrders}`, icon: UtensilsCrossed, color: ACCENT.amber },
+    { label: "Ticket promedio", value: `$${avgTicket}`, icon: Receipt, color: ACCENT.purple },
   ];
 
   return (
     <div className="space-y-5 font-pos">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-2xl font-extrabold" style={{ color: D.text }}>Reportes</h2>
+        <h2 className="text-2xl font-extrabold" style={{ color: T.text }}>Reportes</h2>
         <div className="flex items-center gap-2">
           <Popover>
             <PopoverTrigger asChild>
               <button className="flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold transition-all duration-150"
-                style={{ background: D.card, border: `1px solid ${D.border}`, color: D.textMuted }}>
+                style={{ background: T.card, border: `1px solid ${T.border}`, color: T.textMuted }}>
                 <CalendarIcon size={16} strokeWidth={2} />
                 {format(date, "dd MMM yyyy", { locale: es })}
               </button>
@@ -116,31 +101,31 @@ const AdminReports = () => {
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {stats.map((s) => (
-          <div key={s.label} className="rounded-xl p-4" style={{ background: D.card, border: `1px solid ${D.border}` }}>
+          <div key={s.label} className="rounded-xl p-4" style={{ background: T.card, border: `1px solid ${T.border}` }}>
             <div className="mb-2 flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ background: `${s.color}18` }}>
                 <s.icon size={16} strokeWidth={2} style={{ color: s.color }} />
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: D.textDim }}>{s.label}</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: T.textDim }}>{s.label}</span>
             </div>
-            <p className="text-2xl font-extrabold" style={{ color: D.text }}>{s.value}</p>
+            <p className="text-2xl font-extrabold" style={{ color: T.text }}>{s.value}</p>
           </div>
         ))}
       </div>
 
       {/* Hourly chart */}
-      <div className="rounded-xl p-5" style={{ background: D.card, border: `1px solid ${D.border}` }}>
-        <h3 className="mb-4 text-base font-bold" style={{ color: D.text }}>Pedidos por hora</h3>
+      <div className="rounded-xl p-5" style={{ background: T.card, border: `1px solid ${T.border}` }}>
+        <h3 className="mb-4 text-base font-bold" style={{ color: T.text }}>Pedidos por hora</h3>
         {dayOrders.length === 0 ? (
-          <p className="py-12 text-center text-sm" style={{ color: D.textDim }}>Sin datos para esta fecha</p>
+          <p className="py-12 text-center text-sm" style={{ color: T.textDim }}>Sin datos para esta fecha</p>
         ) : (
           <ChartContainer config={chartConfig} className="h-[260px] w-full">
             <BarChart data={hourlyData} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#252D3D" />
-              <XAxis dataKey="hour" tick={{ fontSize: 11, fill: D.textDim }} tickLine={false} axisLine={false} />
-              <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: D.textDim }} tickLine={false} axisLine={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke={T.border} />
+              <XAxis dataKey="hour" tick={{ fontSize: 11, fill: T.textDim }} tickLine={false} axisLine={false} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: T.textDim }} tickLine={false} axisLine={false} />
               <ChartTooltip content={<ChartTooltipContent />} />
-              <Bar dataKey="pedidos" radius={[6, 6, 0, 0]} fill="#3B82F6" />
+              <Bar dataKey="pedidos" radius={[6, 6, 0, 0]} fill={ACCENT.blue} />
             </BarChart>
           </ChartContainer>
         )}
@@ -148,28 +133,28 @@ const AdminReports = () => {
 
       <div className="grid gap-5 lg:grid-cols-2">
         {/* Top 10 */}
-        <div className="rounded-xl" style={{ background: D.card, border: `1px solid ${D.border}` }}>
-          <div className="px-5 py-4" style={{ borderBottom: `1px solid ${D.border}` }}>
-            <h3 className="text-base font-bold" style={{ color: D.text }}>Top 10 productos</h3>
+        <div className="rounded-xl" style={{ background: T.card, border: `1px solid ${T.border}` }}>
+          <div className="px-5 py-4" style={{ borderBottom: `1px solid ${T.border}` }}>
+            <h3 className="text-base font-bold" style={{ color: T.text }}>Top 10 productos</h3>
           </div>
           {topProducts.length === 0 ? (
-            <p className="py-12 text-center text-sm" style={{ color: D.textDim }}>Sin datos</p>
+            <p className="py-12 text-center text-sm" style={{ color: T.textDim }}>Sin datos</p>
           ) : (
             <table className="w-full text-sm">
               <thead>
-                <tr style={{ borderBottom: `1px solid ${D.border}` }}>
+                <tr style={{ borderBottom: `1px solid ${T.border}` }}>
                   {["#", "Producto", "Qty", "Ingreso"].map((h, i) => (
                     <th key={h} className={`px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider ${i >= 2 ? "text-right" : "text-left"}`}
-                      style={{ color: D.textDim }}>{h}</th>
+                      style={{ color: T.textDim }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {topProducts.map((p, i) => (
-                  <tr key={p.name} style={{ borderBottom: `1px solid ${D.border}` }}>
-                    <td className="px-4 py-2.5 font-bold" style={{ color: D.textDim }}>{i + 1}</td>
-                    <td className="px-4 py-2.5 font-semibold" style={{ color: D.text }}>{p.name}</td>
-                    <td className="px-4 py-2.5 text-right font-pos-mono font-bold" style={{ color: D.textMuted }}>{p.qty}</td>
+                  <tr key={p.name} style={{ borderBottom: `1px solid ${T.border}` }}>
+                    <td className="px-4 py-2.5 font-bold" style={{ color: T.textDim }}>{i + 1}</td>
+                    <td className="px-4 py-2.5 font-semibold" style={{ color: T.text }}>{p.name}</td>
+                    <td className="px-4 py-2.5 text-right font-pos-mono font-bold" style={{ color: T.textMuted }}>{p.qty}</td>
                     <td className="px-4 py-2.5 text-right font-pos-mono font-bold" style={{ color: "#34D399" }}>${p.revenue}</td>
                   </tr>
                 ))}
@@ -179,8 +164,8 @@ const AdminReports = () => {
         </div>
 
         {/* Categories */}
-        <div className="rounded-xl p-5" style={{ background: D.card, border: `1px solid ${D.border}` }}>
-          <h3 className="mb-4 text-base font-bold" style={{ color: D.text }}>Ventas por categoría</h3>
+        <div className="rounded-xl p-5" style={{ background: T.card, border: `1px solid ${T.border}` }}>
+          <h3 className="mb-4 text-base font-bold" style={{ color: T.text }}>Ventas por categoría</h3>
           <div className="space-y-4">
             {categorySales.map((cat) => {
               const maxRevenue = Math.max(...categorySales.map((c) => c.revenue), 1);
@@ -188,14 +173,14 @@ const AdminReports = () => {
               return (
                 <div key={cat.id}>
                   <div className="mb-1.5 flex items-center justify-between">
-                    <span className="text-sm font-semibold" style={{ color: D.text }}>{cat.icon} {cat.name}</span>
+                    <span className="text-sm font-semibold" style={{ color: T.text }}>{cat.icon} {cat.name}</span>
                     <div className="flex items-center gap-3 text-sm">
-                      <span style={{ color: D.textDim }}>{cat.qty} uds</span>
+                      <span style={{ color: T.textDim }}>{cat.qty} uds</span>
                       <span className="font-pos-mono font-bold" style={{ color: "#34D399" }}>${cat.revenue}</span>
                     </div>
                   </div>
                   <div className="h-2 overflow-hidden rounded-full" style={{ background: "rgba(255,255,255,0.06)" }}>
-                    <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: "#3B82F6" }} />
+                    <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: ACCENT.blue }} />
                   </div>
                 </div>
               );

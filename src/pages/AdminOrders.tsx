@@ -1,5 +1,6 @@
 import { useOrders, Order, OrderStatus } from "@/context/OrdersContext";
 import { cn } from "@/lib/utils";
+import { T, STATUS as STATE_COLORS, MESA_COLORS } from "@/lib/admin-theme";
 import {
   Clock, ChefHat, CheckCircle2, Truck, MapPin, CreditCard, Banknote, X,
   ShoppingCart, TrendingUp, Zap, Receipt, Phone, User, Navigation,
@@ -31,27 +32,8 @@ const fmt = (secs: number) => {
 const fmtTime = (d: Date) =>
   d.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hour12: true }).toUpperCase();
 
-/* ═══════════════════ DARK PALETTE ═══════════════════ */
-const P = {
-  bg: "#151820",
-  card: "#1A1F2E",
-  cardElevated: "#1E2536",
-  border: "#252D3D",
-  borderLight: "#2A3348",
-  brand: "#D42B2B",
-  text: "#F1F3F8",
-  textSecondary: "#CDD2DE",
-  textMuted: "#8892A6",
-  textDim: "#5C6478",
-  surface: "#161B27",
-};
-
-const STATE_COLORS: Record<OrderStatus, { hex: string; bg: string; text: string; label: string; border: string }> = {
-  recibido:   { hex: "#3B82F6", bg: "rgba(59,130,246,0.12)", text: "#60A5FA", label: "Nuevo",     border: "#3B82F6" },
-  preparando: { hex: "#F59E0B", bg: "rgba(245,158,11,0.12)", text: "#FBBF24", label: "En cocina", border: "#F59E0B" },
-  listo:      { hex: "#10B981", bg: "rgba(16,185,129,0.12)", text: "#34D399", label: "Listo",     border: "#10B981" },
-  entregado:  { hex: "#6B7280", bg: "rgba(107,114,128,0.12)", text: "#9CA3AF", label: "Entregado", border: "#6B7280" },
-};
+/* ═══════════════════ PALETTE (from shared theme) ═══════════════════ */
+const P = T;
 
 const STATUS_ICONS: Record<OrderStatus, React.ElementType> = {
   recibido: Bell,
@@ -92,7 +74,7 @@ const UrgencyBadge = ({ minutes }: { minutes: number }) => {
 };
 
 /* ═══════════════════ MESA AVATAR ═══════════════════ */
-const MESA_COLORS = ["#3B82F6", "#7C3AED", "#DB2777", "#F59E0B", "#10B981", "#0891B2", "#DC2626", "#4F46E5"];
+// MESA_COLORS imported from admin-theme
 const MesaAvatar = ({ num }: { num: number }) => {
   const color = MESA_COLORS[(num - 1) % MESA_COLORS.length];
   return (
