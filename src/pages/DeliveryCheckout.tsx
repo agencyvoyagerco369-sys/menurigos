@@ -53,7 +53,7 @@ const DeliveryCheckout = () => {
     return errs;
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     const errs = validate();
     if (errs.length > 0) {
       setErrors(errs);
@@ -81,7 +81,7 @@ const DeliveryCheckout = () => {
       `Col. ${colony.trim()}`,
     ].filter(Boolean).join(", ");
 
-    const orderId = addOrder({
+    const orderId = await addOrder({
       items: [...items],
       orderType: "domicilio",
       tableNumber: null,
