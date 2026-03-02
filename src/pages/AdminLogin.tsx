@@ -16,31 +16,42 @@ const AdminLogin = () => {
     e.preventDefault();
     setLoading(true);
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
 
-    if (error) {
-      toast.error("Credenciales incorrectas");
+      if (error) {
+        toast.error("Credenciales incorrectas");
+        setLoading(false);
+        return;
+      }
+
+      // Check admin/staff role
+      const { data: roles, error: rolesError } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", data.user.id);
+
+      if (rolesError) {
+        console.error("Error fetching roles:", rolesError);
+      }
+
+      const hasAccess = roles?.some((r) => r.role === "admin" || r.role === "staff");
+
+      if (!hasAccess) {
+        await supabase.auth.signOut();
+        toast.error("No tienes acceso al panel");
+        setLoading(false);
+        return;
+      }
+
+      toast.success("¡Bienvenido!");
+      navigate("/admin/pedidos");
+    } catch (err) {
+      console.error("Login error:", err);
+      toast.error("Error de conexión. Intenta de nuevo.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    // Check admin/staff role
-    const { data: roles } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", data.user.id);
-
-    const hasAccess = roles?.some((r) => r.role === "admin" || r.role === "staff");
-
-    if (!hasAccess) {
-      await supabase.auth.signOut();
-      toast.error("No tienes acceso al panel");
-      setLoading(false);
-      return;
-    }
-
-    toast.success("¡Bienvenido!");
-    navigate("/admin/pedidos");
   };
 
   return (
