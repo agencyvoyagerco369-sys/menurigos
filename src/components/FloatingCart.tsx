@@ -12,7 +12,7 @@ const FloatingCart = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
-  const handleSendOrder = () => {
+  const handleSendOrder = async () => {
     if (items.length === 0) return;
 
     // If delivery, go to checkout page instead of sending directly
@@ -22,7 +22,7 @@ const FloatingCart = () => {
       return;
     }
 
-    const orderId = addOrder({
+    const orderId = await addOrder({
       items: [...items],
       orderType: orderType || "mesa",
       tableNumber,

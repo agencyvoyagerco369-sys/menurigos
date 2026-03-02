@@ -14,6 +14,95 @@ export type Database = {
   }
   public: {
     Tables: {
+      order_items: {
+        Row: {
+          extras: Json | null
+          id: string
+          notes: string | null
+          order_id: string
+          product_id: string
+          product_name: string
+          product_price: number
+          quantity: number
+          unit_price: number
+        }
+        Insert: {
+          extras?: Json | null
+          id?: string
+          notes?: string | null
+          order_id: string
+          product_id: string
+          product_name: string
+          product_price: number
+          quantity?: number
+          unit_price: number
+        }
+        Update: {
+          extras?: Json | null
+          id?: string
+          notes?: string | null
+          order_id?: string
+          product_id?: string
+          product_name?: string
+          product_price?: number
+          quantity?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          created_at: string
+          customer_address: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          delivery_details: Json | null
+          id: string
+          order_type: string
+          payment_method: string | null
+          short_id: string
+          status: string
+          table_number: number | null
+          total: number
+        }
+        Insert: {
+          created_at?: string
+          customer_address?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          delivery_details?: Json | null
+          id?: string
+          order_type: string
+          payment_method?: string | null
+          short_id?: string
+          status?: string
+          table_number?: number | null
+          total?: number
+        }
+        Update: {
+          created_at?: string
+          customer_address?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          delivery_details?: Json | null
+          id?: string
+          order_type?: string
+          payment_method?: string | null
+          short_id?: string
+          status?: string
+          table_number?: number | null
+          total?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
