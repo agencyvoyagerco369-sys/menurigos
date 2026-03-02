@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
 import { useProducts } from "@/context/ProductsContext";
@@ -6,8 +6,9 @@ import { Product } from "@/data/products";
 import ProductCard from "@/components/ProductCard";
 import ProductDetail from "@/components/ProductDetail";
 import FloatingCart from "@/components/FloatingCart";
+import MenuSkeleton from "@/components/MenuSkeleton";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Menu = () => {
   const [searchParams] = useSearchParams();
@@ -15,16 +16,22 @@ const Menu = () => {
   const { products, categories } = useProducts();
   const [activeCategory, setActiveCategory] = useState("dogos");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const mesa = tableNumber || Number(searchParams.get("mesa")) || null;
 
-  // Only show active products; soldOut ones show but greyed out
+  // Simulate brief loading for skeleton
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 600);
+    return () => clearTimeout(t);
+  }, []);
+
   const filtered = products.filter(
     (p) => p.category === activeCategory && p.active
   );
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background pb-24 font-client">
       {/* Sticky header */}
       <header className="sticky top-0 z-30 bg-secondary shadow-[0_2px_12px_rgba(0,0,0,0.3)]">
         <div className="flex items-center justify-between px-4 py-3">
@@ -43,7 +50,7 @@ const Menu = () => {
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
               className={cn(
-                "flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold transition-all",
+                "flex shrink-0 items-center gap-1.5 rounded-full px-5 py-2.5 text-sm font-bold transition-all",
                 activeCategory === cat.id
                   ? "bg-success text-success-foreground shadow-[0_2px_10px_-2px_hsl(123_46%_34%_/_0.5)]"
                   : "bg-muted/60 text-muted-foreground"
@@ -57,23 +64,35 @@ const Menu = () => {
       </header>
 
       {/* Product list */}
-      <main className="space-y-2.5 px-4 pt-4">
-        {filtered.map((product, i) => (
-          <motion.div
-            key={product.id}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: Math.min(i * 0.03, 0.3), duration: 0.3 }}
-          >
-            <ProductCard product={product} onSelect={setSelectedProduct} />
-          </motion.div>
-        ))}
-      </main>
+      {loading ? (
+        <MenuSkeleton />
+      ) : (
+        <main className="space-y-2.5 px-4 pt-4">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeCategory}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-2.5"
+            >
+              {filtered.map((product, i) => (
+                <motion.div
+                  key={product.id}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: Math.min(i * 0.03, 0.3), duration: 0.25 }}
+                >
+                  <ProductCard product={product} onSelect={setSelectedProduct} />
+                </motion.div>
+              ))}
+            </motion.div>
+          </AnimatePresence>
+        </main>
+      )}
 
-      {/* Product detail sheet */}
       <ProductDetail product={selectedProduct} onClose={() => setSelectedProduct(null)} />
-
-      {/* Floating cart */}
       <FloatingCart />
     </div>
   );
