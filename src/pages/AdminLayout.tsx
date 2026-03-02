@@ -9,18 +9,14 @@ import {
 } from "lucide-react";
 import logoRigos from "@/assets/logo-rigos.png";
 
-const DARK = {
-  sidebar: "#0F1117",
-  sidebarBorder: "#1A1D27",
-  bg: "#151820",
-  card: "#1E2330",
-  cardBorder: "#2A3040",
-  text: "#E8ECF4",
-  textMuted: "#8A94A6",
-  textDim: "#5A6478",
-  surface: "#252B3B",
-  accent: "#10B981",
-  accentBg: "#10B98115",
+const SIDEBAR = {
+  bg: "#1A1A2E",
+  border: "#2A2A42",
+  brand: "#D42B2B",
+  text: "#9CA3AF",
+  textActive: "#FFFFFF",
+  hoverBg: "rgba(255,255,255,0.05)",
+  activeBg: "rgba(212,43,43,0.15)",
 };
 
 const NAV_ITEMS = [
@@ -108,8 +104,8 @@ const AdminLayout = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center" style={{ background: DARK.bg }}>
-        <div className="animate-pulse font-pos-display text-2xl font-bold" style={{ color: DARK.accent }}>Cargando...</div>
+      <div className="flex min-h-screen items-center justify-center" style={{ background: "#F8F9FA" }}>
+        <div className="animate-pulse font-pos text-2xl font-bold" style={{ color: SIDEBAR.brand }}>Cargando...</div>
       </div>
     );
   }
@@ -125,7 +121,7 @@ const AdminLayout = () => {
     <div className="flex min-h-screen w-full font-pos">
       {/* Mobile overlay */}
       {sidebarOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden" style={{ background: "#00000060", backdropFilter: "blur(4px)" }}
+        <div className="fixed inset-0 z-40 lg:hidden" style={{ background: "#00000040", backdropFilter: "blur(4px)" }}
           onClick={() => setSidebarOpen(false)} />
       )}
 
@@ -135,20 +131,23 @@ const AdminLayout = () => {
           "fixed inset-y-0 left-0 z-50 flex w-60 flex-col transition-transform lg:static lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
-        style={{ background: DARK.sidebar, borderRight: `1px solid ${DARK.sidebarBorder}` }}>
+        style={{ background: SIDEBAR.bg, borderRight: `1px solid ${SIDEBAR.border}` }}>
 
         {/* Logo */}
-        <div className="flex items-center gap-3 px-5 py-5" style={{ borderBottom: `1px solid ${DARK.sidebarBorder}` }}>
-          <img src={logoRigos} alt="Rigo's" className="h-9 w-9 rounded-lg" />
-          <div>
-            <h2 className="text-xl font-extrabold font-pos-display leading-tight" style={{ color: DARK.text }}>
-              Rigo's
-            </h2>
-            <p className="text-[9px] font-bold uppercase tracking-[0.2em]" style={{ color: DARK.textDim }}>Restaurant POS</p>
+        <div className="px-5 py-5" style={{ borderBottom: `1px solid ${SIDEBAR.border}` }}>
+          <div className="flex items-center gap-3">
+            <img src={logoRigos} alt="Rigo's" className="h-9 w-9 rounded-lg" />
+            <div>
+              <h2 className="text-xl font-extrabold leading-tight" style={{ color: SIDEBAR.brand, fontFamily: "Georgia, serif" }}>
+                Rigo's
+              </h2>
+            </div>
+            <button className="ml-auto lg:hidden" onClick={() => setSidebarOpen(false)}>
+              <X size={18} strokeWidth={2} style={{ color: SIDEBAR.text }} />
+            </button>
           </div>
-          <button className="ml-auto lg:hidden" onClick={() => setSidebarOpen(false)}>
-            <X size={18} style={{ color: DARK.textDim }} />
-          </button>
+          <div className="mt-2" style={{ width: 40, height: 3, background: SIDEBAR.brand, borderRadius: 2 }} />
+          <p className="mt-1 text-[9px] font-bold uppercase tracking-[0.2em]" style={{ color: SIDEBAR.text }}>Restaurant POS</p>
         </div>
 
         {/* Nav */}
@@ -161,15 +160,17 @@ const AdminLayout = () => {
                 onClick={() => { navigate(item.path); setSidebarOpen(false); }}
                 className="relative flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all duration-150"
                 style={{
-                  background: active ? DARK.accentBg : "transparent",
-                  color: active ? DARK.accent : DARK.textMuted,
-                  borderLeft: active ? `3px solid ${DARK.accent}` : "3px solid transparent",
-                }}>
-                <item.icon size={18} />
+                  background: active ? SIDEBAR.activeBg : "transparent",
+                  color: active ? SIDEBAR.textActive : SIDEBAR.text,
+                  borderLeft: active ? `3px solid ${SIDEBAR.brand}` : "3px solid transparent",
+                }}
+                onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = SIDEBAR.hoverBg; }}
+                onMouseLeave={(e) => { if (!active) e.currentTarget.style.background = "transparent"; }}>
+                <item.icon size={18} strokeWidth={2} />
                 <span>{item.label}</span>
                 {item.path === "/admin/pedidos" && activeCount > 0 && (
-                  <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-md px-1 text-[10px] font-bold"
-                    style={{ background: "#EF444425", color: "#F87171" }}>
+                  <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded px-1 text-[10px] font-bold text-white"
+                    style={{ background: SIDEBAR.brand }}>
                     {activeCount}
                   </span>
                 )}
@@ -179,31 +180,31 @@ const AdminLayout = () => {
         </nav>
 
         {/* Logout */}
-        <div className="px-3 py-4" style={{ borderTop: `1px solid ${DARK.sidebarBorder}` }}>
+        <div className="px-3 py-4" style={{ borderTop: `1px solid ${SIDEBAR.border}` }}>
           <button
             onClick={handleSignOut}
             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors duration-150"
-            style={{ color: DARK.textDim }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = "#F87171"; e.currentTarget.style.background = "#EF444410"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = DARK.textDim; e.currentTarget.style.background = "transparent"; }}>
-            <LogOut size={18} />
+            style={{ color: SIDEBAR.text }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = "#F87171"; e.currentTarget.style.background = "rgba(239,68,68,0.1)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = SIDEBAR.text; e.currentTarget.style.background = "transparent"; }}>
+            <LogOut size={18} strokeWidth={2} />
             Cerrar sesión
           </button>
         </div>
       </aside>
 
       {/* Main content */}
-      <div className="flex flex-1 flex-col" style={{ background: DARK.bg }}>
+      <div className="flex flex-1 flex-col" style={{ background: "#F8F9FA" }}>
         {/* Top bar */}
         <header className="sticky top-0 z-30 flex items-center justify-between px-4 py-3 lg:px-6"
-          style={{ background: DARK.card, borderBottom: `1px solid ${DARK.cardBorder}` }}>
-          <button className="rounded-lg p-2 lg:hidden" style={{ color: DARK.textMuted }}
+          style={{ background: "#FFFFFF", borderBottom: "1px solid #E5E7EB" }}>
+          <button className="rounded-lg p-2 lg:hidden" style={{ color: "#6B7280" }}
             onClick={() => setSidebarOpen(true)}>
-            <MenuIcon size={20} />
+            <MenuIcon size={20} strokeWidth={2} />
           </button>
 
           <div className="hidden lg:block">
-            <h1 className="text-lg font-bold font-pos-display" style={{ color: DARK.text }}>
+            <h1 className="text-lg font-bold font-pos" style={{ color: "#111827" }}>
               {NAV_ITEMS.find((i) => i.path === location.pathname)?.label || "Panel"}
             </h1>
           </div>
@@ -213,28 +214,28 @@ const AdminLayout = () => {
             <button onClick={() => setKitchenMode((v) => !v)}
               className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-150"
               style={{
-                background: kitchenMode ? DARK.accentBg : DARK.surface || DARK.cardBorder,
-                color: kitchenMode ? DARK.accent : DARK.textDim,
-                border: `1px solid ${kitchenMode ? DARK.accent + "30" : DARK.cardBorder}`,
+                background: kitchenMode ? "rgba(212,43,43,0.1)" : "#F3F4F6",
+                color: kitchenMode ? SIDEBAR.brand : "#6B7280",
+                border: `1px solid ${kitchenMode ? SIDEBAR.brand + "30" : "#E5E7EB"}`,
               }}>
-              {kitchenMode ? <Moon size={14} /> : <Sun size={14} />}
+              {kitchenMode ? <Moon size={14} strokeWidth={2} /> : <Sun size={14} strokeWidth={2} />}
               Modo cocina
             </button>
 
             {/* Live */}
             {hasActiveOrders && (
               <div className="flex items-center gap-2 rounded-lg px-3 py-1.5"
-                style={{ background: "#10B98112", border: "1px solid #10B98120" }}>
+                style={{ background: "#DCFCE7", border: "1px solid #BBF7D0" }}>
                 <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style={{ background: "#10B981" }} />
-                  <span className="relative inline-flex h-2 w-2 rounded-full" style={{ background: "#10B981" }} />
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style={{ background: "#16A34A" }} />
+                  <span className="relative inline-flex h-2 w-2 rounded-full" style={{ background: "#16A34A" }} />
                 </span>
-                <span className="text-xs font-semibold" style={{ color: "#34D399" }}>En vivo</span>
+                <span className="text-xs font-semibold" style={{ color: "#15803D" }}>En vivo</span>
               </div>
             )}
 
             {/* Clock */}
-            <span className="font-pos text-sm font-medium tabular-nums" style={{ color: DARK.textMuted }}>
+            <span className="font-pos-mono text-sm font-medium tabular-nums" style={{ color: "#6B7280" }}>
               {time.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true }).toUpperCase()}
             </span>
           </div>
