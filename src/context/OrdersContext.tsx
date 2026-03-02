@@ -19,7 +19,7 @@ export interface DeliveryDetails {
 
 export interface Order {
   id: string;
-  dbId?: string; // uuid from DB
+  dbId?: string;
   items: CartItem[];
   orderType: OrderType;
   tableNumber: number | null;
@@ -56,14 +56,16 @@ const dbToOrder = (row: any, items: any[]): Order => ({
       active: true,
       soldOut: false,
     },
-    extras: Array.isArray(it.extras) ? it.extras.map((e: any) => ({
-      id: e.id || "",
-      name: e.name || "",
-      price: e.price || 0,
-      category: "extras",
-      active: true,
-      soldOut: false,
-    })) : [],
+    extras: Array.isArray(it.extras)
+      ? it.extras.map((e: any) => ({
+          id: e.id || "",
+          name: e.name || "",
+          price: e.price || 0,
+          category: "extras",
+          active: true,
+          soldOut: false,
+        }))
+      : [],
     notes: it.notes || "",
     quantity: it.quantity,
     unitPrice: Number(it.unit_price),
@@ -82,24 +84,33 @@ const dbToOrder = (row: any, items: any[]): Order => ({
 
 export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [orders, setOrders] = useState<Order[]>([]);
-  const loadedRef = useRef(false);
+  const ordersRef = useRef<Order[]>([]);
+
+  // Keep ref in sync to avoid stale closures
+  useEffect(() => {
+    ordersRef.current = orders;
+  }, [orders]);
 
   // Load today's orders on mount
   useEffect(() => {
-    if (loadedRef.current) return;
-    loadedRef.current = true;
-
     const loadOrders = async () => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      const { data: ordersData } = await supabase
+      const { data: ordersData, error } = await supabase
         .from("orders")
         .select("*")
         .gte("created_at", today.toISOString())
         .order("created_at", { ascending: false });
 
-      if (!ordersData || ordersData.length === 0) return;
+      if (error) {
+        console.error("Error loading orders:", error);
+        return;
+      }
+      if (!ordersData || ordersData.length === 0) {
+        setOrders([]);
+        return;
+      }
 
       const { data: itemsData } = await supabase
         .from("order_items")
@@ -115,7 +126,7 @@ export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     loadOrders();
   }, []);
 
-  // Realtime subscription for order changes
+  // Realtime subscription with reconnection
   useEffect(() => {
     const channel = supabase
       .channel("orders-realtime")
@@ -124,7 +135,12 @@ export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         { event: "INSERT", schema: "public", table: "orders" },
         async (payload) => {
           const row = payload.new as any;
-          // Load items for this new order
+          // Skip if already in state
+          if (ordersRef.current.some((o) => o.dbId === row.id)) return;
+
+          // Small delay to let order_items be inserted
+          await new Promise((r) => setTimeout(r, 300));
+
           const { data: itemsData } = await supabase
             .from("order_items")
             .select("*")
@@ -132,7 +148,6 @@ export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
           const newOrder = dbToOrder(row, itemsData || []);
           setOrders((prev) => {
-            // Avoid duplicates
             if (prev.some((o) => o.dbId === row.id)) return prev;
             return [newOrder, ...prev];
           });
@@ -152,85 +167,97 @@ export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           );
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "CHANNEL_ERROR") {
+          console.warn("Realtime channel error, will auto-reconnect");
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
     };
   }, []);
 
-  const addOrder = useCallback(async (order: Omit<Order, "id" | "createdAt" | "status">): Promise<string> => {
-    // Insert order into DB
-    const { data: orderRow, error } = await supabase
-      .from("orders")
-      .insert({
-        order_type: order.orderType,
-        table_number: order.tableNumber,
-        customer_name: order.customerName || null,
-        customer_phone: order.customerPhone || null,
-        customer_address: order.customerAddress || null,
-        delivery_details: order.deliveryDetails ? (order.deliveryDetails as any) : null,
-        total: order.total,
-        status: "recibido",
-      })
-      .select()
-      .single();
+  const addOrder = useCallback(
+    async (order: Omit<Order, "id" | "createdAt" | "status">): Promise<string> => {
+      const { data: orderRow, error } = await supabase
+        .from("orders")
+        .insert({
+          order_type: order.orderType,
+          table_number: order.tableNumber,
+          customer_name: order.customerName || null,
+          customer_phone: order.customerPhone || null,
+          customer_address: order.customerAddress || null,
+          delivery_details: order.deliveryDetails ? (order.deliveryDetails as any) : null,
+          total: order.total,
+          status: "recibido",
+        })
+        .select()
+        .single();
 
-    if (error || !orderRow) {
-      console.error("Error creating order:", error);
-      // Fallback to local
-      const localId = `ORD-${Date.now().toString(36).toUpperCase()}`;
-      const newOrder: Order = { ...order, id: localId, status: "recibido", createdAt: new Date() };
-      setOrders((prev) => [newOrder, ...prev]);
-      return localId;
-    }
+      if (error || !orderRow) {
+        console.error("Error creating order:", error);
+        throw new Error("No se pudo crear el pedido. Intenta de nuevo.");
+      }
 
-    // Insert items
-    const itemsToInsert = order.items.map((item) => ({
-      order_id: orderRow.id,
-      product_id: item.product.id,
-      product_name: item.product.name,
-      product_price: item.product.price,
-      extras: item.extras.map((e) => ({ id: e.id, name: e.name, price: e.price })),
-      notes: item.notes,
-      quantity: item.quantity,
-      unit_price: item.unitPrice,
-    }));
+      // Insert items
+      const itemsToInsert = order.items.map((item) => ({
+        order_id: orderRow.id,
+        product_id: item.product.id,
+        product_name: item.product.name,
+        product_price: item.product.price,
+        extras: item.extras.map((e) => ({ id: e.id, name: e.name, price: e.price })),
+        notes: item.notes,
+        quantity: item.quantity,
+        unit_price: item.unitPrice,
+      }));
 
-    await supabase.from("order_items").insert(itemsToInsert);
+      const { error: itemsError } = await supabase.from("order_items").insert(itemsToInsert);
+      if (itemsError) {
+        console.error("Error inserting items:", itemsError);
+      }
 
-    // The realtime subscription will add it to state, but also add locally to be safe
-    const newOrder = dbToOrder(orderRow, itemsToInsert.map((it, i) => ({ ...it, id: `temp-${i}` })));
-    setOrders((prev) => {
-      if (prev.some((o) => o.dbId === orderRow.id)) return prev;
-      return [newOrder, ...prev];
-    });
+      // Optimistic local add (realtime will deduplicate)
+      const newOrder = dbToOrder(orderRow, itemsToInsert.map((it, i) => ({ ...it, id: `temp-${i}` })));
+      setOrders((prev) => {
+        if (prev.some((o) => o.dbId === orderRow.id)) return prev;
+        return [newOrder, ...prev];
+      });
 
-    return orderRow.short_id;
-  }, []);
+      return orderRow.short_id;
+    },
+    []
+  );
 
-  const updateOrderStatus = useCallback(async (id: string, status: OrderStatus) => {
-    // Find order by short_id
-    const order = orders.find((o) => o.id === id);
-    if (!order?.dbId) {
-      // Local-only fallback
+  const updateOrderStatus = useCallback(
+    async (id: string, status: OrderStatus) => {
+      // Use ref to avoid stale closure
+      const order = ordersRef.current.find((o) => o.id === id);
+      if (!order?.dbId) {
+        setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
+        return;
+      }
+
+      // Optimistic update first
       setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
-      return;
-    }
 
-    // Update in DB - realtime will propagate
-    await supabase
-      .from("orders")
-      .update({ status })
-      .eq("id", order.dbId);
+      const { error } = await supabase
+        .from("orders")
+        .update({ status })
+        .eq("id", order.dbId);
 
-    // Optimistic local update
-    setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
-  }, [orders]);
+      if (error) {
+        console.error("Error updating order status:", error);
+        // Revert on failure
+        setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status: order.status } : o)));
+      }
+    },
+    []
+  );
 
   const getOrder = useCallback(
-    (id: string) => orders.find((o) => o.id === id),
-    [orders]
+    (id: string) => ordersRef.current.find((o) => o.id === id),
+    []
   );
 
   return (
