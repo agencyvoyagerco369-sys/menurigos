@@ -17,8 +17,9 @@ export default {
         display: ["var(--font-display)", "sans-serif"],
         body: ["var(--font-body)", "sans-serif"],
         client: ["var(--font-client)", "sans-serif"],
-        pos: ["var(--font-pos)", "sans-serif"],
-        "pos-display": ["var(--font-pos-display)", "sans-serif"],
+        pos: ["'IBM Plex Sans'", "sans-serif"],
+        "pos-display": ["'IBM Plex Sans'", "sans-serif"],
+        "pos-mono": ["'IBM Plex Mono'", "monospace"],
       },
       colors: {
         border: "hsl(var(--border))",
