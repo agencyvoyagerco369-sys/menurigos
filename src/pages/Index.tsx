@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
 import { tables } from "@/data/products";
 import { motion } from "framer-motion";
-import { UtensilsCrossed, Truck, MapPin, ChefHat } from "lucide-react";
+import { UtensilsCrossed, Truck } from "lucide-react";
 import { useState } from "react";
 import logoRigos from "@/assets/logo-rigos.png";
 
@@ -86,16 +86,6 @@ const Index = () => {
               <span className="relative">Pedir a Domicilio</span>
             </motion.button>
 
-            <div className="pt-4">
-              <div className="mx-auto mb-4 h-px w-16 bg-foreground/10" />
-              <button
-                onClick={() => navigate("/admin")}
-                className="group flex w-full items-center justify-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <ChefHat size={16} className="transition-transform group-hover:rotate-12" />
-                Panel de Control
-              </button>
-            </div>
           </motion.div>
         ) : (
           <motion.div
