@@ -27,13 +27,18 @@ import {
   CircleDot,
   ArrowUpRight,
   Sparkles,
+  Hash,
+  ExternalLink,
 } from "lucide-react";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
 type ViewMode = "todo" | "mesas" | "domicilio";
 
-// ── Elapsed timer hook ──
+/* ═══════════════════════════════════════════
+   HOOKS & HELPERS
+   ═══════════════════════════════════════════ */
+
 const useElapsed = (date: Date) => {
   const [elapsed, setElapsed] = useState(() => Math.floor((Date.now() - date.getTime()) / 1000));
   useEffect(() => {
@@ -43,183 +48,144 @@ const useElapsed = (date: Date) => {
   return elapsed;
 };
 
-const fmtTime = (secs: number) => {
+const fmt = (secs: number) => {
   const m = Math.floor(secs / 60);
   const s = secs % 60;
   return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
 };
 
-// ── Live clock component ──
-const LiveClock = ({ createdAt, label }: { createdAt: Date; label?: string }) => {
+/* ═══════════════════════════════════════════
+   CIRCULAR TIMER — glowing ring
+   ═══════════════════════════════════════════ */
+const GlowTimer = ({ createdAt }: { createdAt: Date }) => {
   const elapsed = useElapsed(createdAt);
   const mins = Math.floor(elapsed / 60);
+  const progress = Math.min(elapsed / (30 * 60), 1);
+  const C = 2 * Math.PI * 20;
+  const offset = C * (1 - progress);
   const isUrgent = mins >= 20;
-  const isWarning = mins >= 10;
+  const isWarn = mins >= 10;
+
+  const color = isUrgent ? "#ef4444" : isWarn ? "#f59e0b" : "#06b6d4";
+  const glow = isUrgent ? "drop-shadow(0 0 6px #ef4444)" : isWarn ? "drop-shadow(0 0 4px #f59e0b)" : "drop-shadow(0 0 3px #06b6d4)";
 
   return (
-    <div
-      className={cn(
-        "flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-mono text-xs font-bold tabular-nums transition-colors",
-        isUrgent && "bg-destructive/20 text-destructive animate-pulse ring-1 ring-destructive/30",
-        isWarning && !isUrgent && "bg-amber-500/15 text-amber-400",
-        !isWarning && "bg-muted/80 text-muted-foreground"
-      )}
-    >
-      {isUrgent ? <Flame size={12} /> : isWarning ? <AlertTriangle size={12} /> : <Timer size={12} />}
-      {label && <span className="text-[9px] font-medium opacity-70">{label}</span>}
-      {fmtTime(elapsed)}
-    </div>
-  );
-};
-
-// ── Circular progress timer ──
-const CircularTimer = ({ createdAt }: { createdAt: Date }) => {
-  const elapsed = useElapsed(createdAt);
-  const mins = Math.floor(elapsed / 60);
-  const progress = Math.min(elapsed / (30 * 60), 1); // 30 min max
-  const circumference = 2 * Math.PI * 18;
-  const offset = circumference * (1 - progress);
-  const isUrgent = mins >= 20;
-  const isWarning = mins >= 10;
-
-  const strokeColor = isUrgent
-    ? "hsl(var(--destructive))"
-    : isWarning
-    ? "hsl(48, 100%, 50%)"
-    : "hsl(var(--primary))";
-
-  return (
-    <div className="relative flex flex-col items-center">
-      <svg width="48" height="48" viewBox="0 0 40 40" className={cn(isUrgent && "animate-pulse")}>
-        <circle cx="20" cy="20" r="18" fill="none" stroke="hsl(var(--border))" strokeWidth="2.5" />
+    <div className="relative flex-shrink-0">
+      <svg width="56" height="56" viewBox="0 0 44 44" style={{ filter: glow }} className={cn(isUrgent && "animate-pulse")}>
+        <circle cx="22" cy="22" r="20" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="3" />
         <circle
-          cx="20"
-          cy="20"
-          r="18"
-          fill="none"
-          stroke={strokeColor}
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          transform="rotate(-90 20 20)"
+          cx="22" cy="22" r="20"
+          fill="none" stroke={color} strokeWidth="3" strokeLinecap="round"
+          strokeDasharray={C} strokeDashoffset={offset}
+          transform="rotate(-90 22 22)"
           className="transition-all duration-1000"
         />
       </svg>
-      <span className={cn(
-        "absolute inset-0 flex items-center justify-center font-mono text-[10px] font-bold tabular-nums",
-        isUrgent ? "text-destructive" : isWarning ? "text-amber-400" : "text-primary"
-      )}>
-        {fmtTime(elapsed)}
-      </span>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="font-mono text-[11px] font-black tabular-nums" style={{ color }}>{fmt(elapsed)}</span>
+      </div>
     </div>
   );
 };
 
-// ── Status config ──
-const STATUS_CFG: Record<OrderStatus, { label: string; icon: React.ElementType; color: string; bg: string; ring: string }> = {
-  recibido: { label: "Recibido", icon: CircleDot, color: "text-amber-400", bg: "bg-amber-400/10", ring: "ring-amber-400/20" },
-  preparando: { label: "Preparando", icon: ChefHat, color: "text-primary", bg: "bg-primary/10", ring: "ring-primary/20" },
-  listo: { label: "Listo", icon: CheckCircle2, color: "text-emerald-400", bg: "bg-emerald-400/10", ring: "ring-emerald-400/20" },
-  entregado: { label: "Entregado", icon: Package, color: "text-muted-foreground", bg: "bg-muted/50", ring: "ring-border" },
+/* ═══════════════════════════════════════════
+   STATUS CONFIG
+   ═══════════════════════════════════════════ */
+const STATUS: Record<OrderStatus, {
+  label: string; icon: React.ElementType;
+  text: string; bg: string; border: string; glow: string; gradient: string;
+}> = {
+  recibido: {
+    label: "Nuevo", icon: CircleDot,
+    text: "text-amber-400", bg: "bg-amber-400/10", border: "border-amber-400/30",
+    glow: "shadow-[0_0_12px_rgba(245,158,11,0.15)]", gradient: "from-amber-500/20 to-orange-500/10",
+  },
+  preparando: {
+    label: "En cocina", icon: ChefHat,
+    text: "text-cyan-400", bg: "bg-cyan-400/10", border: "border-cyan-400/30",
+    glow: "shadow-[0_0_12px_rgba(6,182,212,0.15)]", gradient: "from-cyan-500/20 to-blue-500/10",
+  },
+  listo: {
+    label: "Listo", icon: CheckCircle2,
+    text: "text-emerald-400", bg: "bg-emerald-400/10", border: "border-emerald-400/30",
+    glow: "shadow-[0_0_12px_rgba(52,211,153,0.15)]", gradient: "from-emerald-500/20 to-green-500/10",
+  },
+  entregado: {
+    label: "Entregado", icon: Package,
+    text: "text-slate-500", bg: "bg-slate-500/10", border: "border-slate-500/20",
+    glow: "", gradient: "from-slate-500/10 to-slate-600/5",
+  },
 };
 
-// ── Payment dialog ──
-const PaymentDialog = ({
-  order,
-  onConfirm,
-  onClose,
-}: {
-  order: Order;
-  onConfirm: (method: "efectivo" | "transferencia") => void;
-  onClose: () => void;
+/* ═══════════════════════════════════════════
+   STATUS BADGE
+   ═══════════════════════════════════════════ */
+const StatusBadge = ({ status }: { status: OrderStatus }) => {
+  const cfg = STATUS[status];
+  const Icon = cfg.icon;
+  return (
+    <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest", cfg.bg, cfg.text, cfg.border)}>
+      <Icon size={11} />
+      {cfg.label}
+    </span>
+  );
+};
+
+/* ═══════════════════════════════════════════
+   STAT CARDS — glass style
+   ═══════════════════════════════════════════ */
+const StatCard = ({ label, value, icon: Icon, color, glowColor }: {
+  label: string; value: string | number; icon: React.ElementType; color: string; glowColor: string;
 }) => (
   <motion.div
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    exit={{ opacity: 0 }}
-    className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-md"
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    className="group relative overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.04] to-white/[0.01] p-4 backdrop-blur-sm transition-all hover:border-white/[0.12]"
+    style={{ boxShadow: `0 0 20px ${glowColor}` }}
   >
-    <motion.div
-      initial={{ scale: 0.9, y: 20 }}
-      animate={{ scale: 1, y: 0 }}
-      exit={{ scale: 0.9, y: 20 }}
-      className="relative mx-4 w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-[0_8px_40px_rgba(0,0,0,0.5)]"
-    >
-      <button onClick={onClose} className="absolute right-4 top-4 text-muted-foreground hover:text-foreground transition-colors">
-        <X size={20} />
-      </button>
-      <div className="mb-5 text-center">
-        <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
-          <Banknote size={28} className="text-primary" />
-        </div>
-        <h3 className="font-display text-2xl text-card-foreground">Cobrar pedido</h3>
-        <p className="mt-1 text-xs text-muted-foreground">{order.id} · Mesa {order.tableNumber}</p>
-        <p className="mt-3 font-display text-4xl text-primary">${order.total}</p>
+    <div className="absolute -right-4 -top-4 h-20 w-20 rounded-full opacity-[0.04]" style={{ background: glowColor }} />
+    <div className="flex items-center gap-3.5">
+      <div className={cn("flex h-11 w-11 items-center justify-center rounded-xl border border-white/[0.08]")} style={{ background: `${glowColor}15` }}>
+        <Icon size={22} className={color} />
       </div>
-      <p className="mb-4 text-center text-xs text-muted-foreground">Método de pago del cliente</p>
-      <div className="grid grid-cols-2 gap-3">
-        <button
-          onClick={() => onConfirm("efectivo")}
-          className="flex flex-col items-center gap-2.5 rounded-xl border-2 border-border bg-card py-5 text-foreground transition-all hover:border-emerald-400/50 hover:bg-emerald-400/5 hover:scale-[1.02] active:scale-95"
-        >
-          <Banknote size={28} className="text-emerald-400" />
-          <span className="text-sm font-bold">Efectivo</span>
-        </button>
-        <button
-          onClick={() => onConfirm("transferencia")}
-          className="flex flex-col items-center gap-2.5 rounded-xl border-2 border-border bg-card py-5 text-foreground transition-all hover:border-primary/50 hover:bg-primary/5 hover:scale-[1.02] active:scale-95"
-        >
-          <CreditCard size={28} className="text-primary" />
-          <span className="text-sm font-bold">Transferencia</span>
-        </button>
+      <div className="min-w-0">
+        <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400">{label}</p>
+        <p className={cn("truncate font-display text-2xl leading-tight", color)}>{value}</p>
       </div>
-    </motion.div>
+    </div>
   </motion.div>
 );
 
-// ── Stat card ──
-const StatCard = ({ label, value, icon: Icon, accent }: { label: string; value: string | number; icon: React.ElementType; accent: string }) => (
-  <div className="group relative overflow-hidden rounded-2xl border border-border bg-card p-4 transition-all hover:border-primary/20">
-    <div className={cn("absolute -right-3 -top-3 h-16 w-16 rounded-full opacity-[0.07]", accent.replace("text-", "bg-"))} />
-    <div className="flex items-center gap-3">
-      <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl", accent.replace("text-", "bg-") + "/10")}>
-        <Icon size={20} className={accent} />
-      </div>
-      <div className="min-w-0">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{label}</p>
-        <p className={cn("truncate font-display text-2xl leading-tight", accent)}>{value}</p>
-      </div>
-    </div>
-  </div>
-);
-
-// ── Priority indicator ──
-const PriorityDot = ({ minutes }: { minutes: number }) => {
-  if (minutes >= 20) return <span className="h-2 w-2 rounded-full bg-destructive animate-pulse" />;
-  if (minutes >= 10) return <span className="h-2 w-2 rounded-full bg-amber-400" />;
-  return <span className="h-2 w-2 rounded-full bg-emerald-400" />;
+/* ═══════════════════════════════════════════
+   PRIORITY BAR — left accent
+   ═══════════════════════════════════════════ */
+const PriorityBar = ({ minutes }: { minutes: number }) => {
+  if (minutes >= 20) return <div className="absolute left-0 top-0 h-full w-1 rounded-l-2xl bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />;
+  if (minutes >= 10) return <div className="absolute left-0 top-0 h-full w-1 rounded-l-2xl bg-amber-400 shadow-[0_0_6px_rgba(245,158,11,0.4)]" />;
+  return <div className="absolute left-0 top-0 h-full w-1 rounded-l-2xl bg-cyan-400 shadow-[0_0_4px_rgba(6,182,212,0.3)]" />;
 };
 
-// ── Order items list ──
+/* ═══════════════════════════════════════════
+   ORDER ITEMS
+   ═══════════════════════════════════════════ */
 const OrderItemsList = ({ items }: { items: Order["items"] }) => (
-  <div className="space-y-1">
+  <div className="space-y-1.5">
     {items.map((item) => (
-      <div key={item.id} className="text-[13px]">
-        <div className="flex items-start justify-between gap-2">
-          <span className="font-semibold text-foreground">
-            <span className="mr-1 inline-flex h-5 min-w-5 items-center justify-center rounded bg-muted px-1 text-[10px] font-bold text-muted-foreground">
+      <div key={item.id}>
+        <div className="flex items-start justify-between gap-2 text-[13px]">
+          <span className="text-slate-200">
+            <span className="mr-1.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-md bg-white/[0.06] px-1 font-mono text-[10px] font-bold text-cyan-300">
               {item.quantity}×
             </span>
-            {item.product.name}
+            <span className="font-semibold">{item.product.name}</span>
           </span>
-          <span className="shrink-0 tabular-nums text-muted-foreground">${item.unitPrice * item.quantity}</span>
+          <span className="shrink-0 font-mono text-xs tabular-nums text-slate-400">${item.unitPrice * item.quantity}</span>
         </div>
         {item.extras.length > 0 && (
-          <p className="ml-7 text-[11px] text-muted-foreground/80">+ {item.extras.map((e) => e.name).join(", ")}</p>
+          <p className="ml-7 text-[11px] text-slate-500">+ {item.extras.map((e) => e.name).join(", ")}</p>
         )}
         {item.notes && (
-          <p className="ml-7 flex items-center gap-1 text-[11px] italic text-amber-400/80">
+          <p className="ml-7 flex items-center gap-1 text-[11px] italic text-amber-400/70">
             <MessageSquare size={9} /> {item.notes}
           </p>
         )}
@@ -228,81 +194,122 @@ const OrderItemsList = ({ items }: { items: Order["items"] }) => (
   </div>
 );
 
-// ── Action buttons ──
-const ActionButtons = ({ order, onAction, isDelivery }: { order: Order; onAction: (id: string, status: OrderStatus) => void; isDelivery?: boolean }) => {
-  const btnBase = "flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs font-bold transition-all active:scale-95 ring-1";
-
-  return (
-    <div className="flex gap-2">
-      {order.status === "recibido" && (
-        <>
-          <button onClick={() => onAction(order.id, "preparando")} className={cn(btnBase, "bg-primary/10 text-primary ring-primary/20 hover:bg-primary/20")}>
-            <ChefHat size={14} /> Preparar
-          </button>
-          <button onClick={() => onAction(order.id, "listo")} className={cn(btnBase, "bg-emerald-400/10 text-emerald-400 ring-emerald-400/20 hover:bg-emerald-400/20")}>
-            <CheckCircle2 size={14} /> Listo
-          </button>
-        </>
-      )}
-      {order.status === "preparando" && (
-        <button onClick={() => onAction(order.id, "listo")} className={cn(btnBase, "bg-emerald-400/10 text-emerald-400 ring-emerald-400/20 hover:bg-emerald-400/20")}>
-          <CheckCircle2 size={14} /> Marcar listo
+/* ═══════════════════════════════════════════
+   ACTION BUTTONS — gradient style
+   ═══════════════════════════════════════════ */
+const ActionButtons = ({ order, onAction, isDelivery }: { order: Order; onAction: (id: string, status: OrderStatus) => void; isDelivery?: boolean }) => (
+  <div className="flex gap-2">
+    {order.status === "recibido" && (
+      <>
+        <button onClick={() => onAction(order.id, "preparando")} className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-cyan-500/20 to-blue-500/20 py-2.5 text-xs font-bold text-cyan-300 ring-1 ring-cyan-400/20 transition-all hover:from-cyan-500/30 hover:to-blue-500/30 active:scale-95">
+          <ChefHat size={14} /> Preparar
         </button>
-      )}
-      {order.status === "listo" && (
-        <button onClick={() => onAction(order.id, "entregado")} className={cn(btnBase, "bg-secondary text-secondary-foreground ring-border hover:bg-secondary/80")}>
-          <Package size={14} /> {isDelivery ? "Entregado" : "Cobrar y entregar"}
+        <button onClick={() => onAction(order.id, "listo")} className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-500/20 to-green-500/20 py-2.5 text-xs font-bold text-emerald-300 ring-1 ring-emerald-400/20 transition-all hover:from-emerald-500/30 hover:to-green-500/30 active:scale-95">
+          <CheckCircle2 size={14} /> Listo
         </button>
-      )}
-    </div>
-  );
-};
+      </>
+    )}
+    {order.status === "preparando" && (
+      <button onClick={() => onAction(order.id, "listo")} className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-500/20 to-green-500/20 py-2.5 text-xs font-bold text-emerald-300 ring-1 ring-emerald-400/20 transition-all hover:from-emerald-500/30 hover:to-green-500/30 active:scale-95">
+        <CheckCircle2 size={14} /> Marcar listo
+      </button>
+    )}
+    {order.status === "listo" && (
+      <button onClick={() => onAction(order.id, "entregado")} className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-violet-500/20 to-purple-500/20 py-2.5 text-xs font-bold text-violet-300 ring-1 ring-violet-400/20 transition-all hover:from-violet-500/30 hover:to-purple-500/30 active:scale-95">
+        <Package size={14} /> {isDelivery ? "Entregado" : "Cobrar y entregar"}
+      </button>
+    )}
+  </div>
+);
 
-// ── Mesa order card ──
+/* ═══════════════════════════════════════════
+   PAYMENT DIALOG
+   ═══════════════════════════════════════════ */
+const PaymentDialog = ({ order, onConfirm, onClose }: {
+  order: Order; onConfirm: (m: "efectivo" | "transferencia") => void; onClose: () => void;
+}) => (
+  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+    className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-lg">
+    <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+      className="relative mx-4 w-full max-w-sm overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-b from-slate-800 to-slate-900 p-6 shadow-2xl">
+      <button onClick={onClose} className="absolute right-4 top-4 text-slate-500 hover:text-white transition-colors"><X size={20} /></button>
+      <div className="mb-6 text-center">
+        <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 ring-1 ring-white/10">
+          <Banknote size={30} className="text-emerald-400" />
+        </div>
+        <h3 className="font-display text-2xl text-white">Cobrar pedido</h3>
+        <p className="mt-1 flex items-center justify-center gap-1.5 text-xs text-slate-400">
+          <Hash size={10} />{order.id} · Mesa {order.tableNumber}
+        </p>
+        <p className="mt-3 font-display text-5xl text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">${order.total}</p>
+      </div>
+      <p className="mb-4 text-center text-xs text-slate-500">Método de pago</p>
+      <div className="grid grid-cols-2 gap-3">
+        <button onClick={() => onConfirm("efectivo")}
+          className="flex flex-col items-center gap-3 rounded-2xl border border-white/[0.06] bg-white/[0.02] py-6 text-white transition-all hover:border-emerald-400/30 hover:bg-emerald-500/5 hover:scale-[1.02] active:scale-95">
+          <Banknote size={30} className="text-emerald-400" />
+          <span className="text-sm font-bold">Efectivo</span>
+        </button>
+        <button onClick={() => onConfirm("transferencia")}
+          className="flex flex-col items-center gap-3 rounded-2xl border border-white/[0.06] bg-white/[0.02] py-6 text-white transition-all hover:border-cyan-400/30 hover:bg-cyan-500/5 hover:scale-[1.02] active:scale-95">
+          <CreditCard size={30} className="text-cyan-400" />
+          <span className="text-sm font-bold">Transferencia</span>
+        </button>
+      </div>
+    </motion.div>
+  </motion.div>
+);
+
+/* ═══════════════════════════════════════════
+   MESA ORDER CARD
+   ═══════════════════════════════════════════ */
 const MesaCard = ({ order, onAction }: { order: Order; onAction: (id: string, status: OrderStatus) => void }) => {
   const elapsed = useElapsed(order.createdAt);
   const mins = Math.floor(elapsed / 60);
-  const cfg = STATUS_CFG[order.status];
   const isDone = order.status === "entregado";
-  const StatusIcon = cfg.icon;
+  const cfg = STATUS[order.status];
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      transition={{ duration: 0.25 }}
+    <motion.div layout initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }}
+      transition={{ duration: 0.2 }}
       className={cn(
-        "group overflow-hidden rounded-2xl border transition-all",
-        isDone ? "border-border/30 opacity-40" : "border-border hover:border-primary/30",
-        !isDone && mins >= 20 && "ring-2 ring-destructive/20"
-      )}
-    >
-      {/* Card header */}
-      <div className={cn("flex items-center justify-between px-4 py-2.5", isDone ? "bg-muted/30" : "bg-secondary/80")}>
+        "relative overflow-hidden rounded-2xl border transition-all",
+        isDone ? "border-white/[0.03] opacity-35" : cn("border-white/[0.08]", cfg.glow),
+        !isDone && mins >= 20 && "ring-1 ring-red-500/30"
+      )}>
+      {!isDone && <PriorityBar minutes={mins} />}
+
+      {/* Header */}
+      <div className={cn("flex items-center justify-between px-4 py-3 pl-5", isDone ? "bg-white/[0.01]" : `bg-gradient-to-r ${cfg.gradient}`)}>
         <div className="flex items-center gap-2.5">
-          <PriorityDot minutes={isDone ? 0 : mins} />
-          <Utensils size={14} className="text-secondary-foreground/70" />
-          <span className="text-sm font-bold text-secondary-foreground">Mesa {order.tableNumber}</span>
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.06] ring-1 ring-white/[0.08]">
+            <Utensils size={15} className="text-cyan-300" />
+          </div>
+          <div>
+            <span className="text-sm font-bold text-white">Mesa {order.tableNumber}</span>
+            <div className="flex items-center gap-1.5 text-[10px] text-slate-500">
+              <Hash size={8} />{order.id}
+            </div>
+          </div>
         </div>
-        <div className={cn("flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ring-1", cfg.bg, cfg.color, cfg.ring)}>
-          <StatusIcon size={11} />
-          {cfg.label}
-        </div>
+        <StatusBadge status={order.status} />
       </div>
 
-      <div className="bg-card p-3.5">
-        {/* Timer + meta row */}
+      {/* Body */}
+      <div className="bg-slate-900/60 p-4 pl-5">
+        {/* Time row */}
         <div className="mb-3 flex items-center justify-between">
-          <div className="space-y-0.5">
-            <p className="font-mono text-[10px] text-muted-foreground/60">{order.id}</p>
-            <p className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Clock size={10} />
-              {order.createdAt.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })}
-            </p>
+          <div className="flex items-center gap-2 text-xs text-slate-400">
+            <Clock size={12} className="text-slate-500" />
+            <span>{order.createdAt.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })}</span>
+            {!isDone && mins >= 10 && (
+              <span className={cn("flex items-center gap-1 font-bold", mins >= 20 ? "text-red-400" : "text-amber-400")}>
+                {mins >= 20 ? <Flame size={11} /> : <AlertTriangle size={11} />}
+                {mins >= 20 ? "¡Urgente!" : "Atención"}
+              </span>
+            )}
           </div>
-          {!isDone && <CircularTimer createdAt={order.createdAt} />}
+          {!isDone && <GlowTimer createdAt={order.createdAt} />}
         </div>
 
         {/* Items */}
@@ -311,154 +318,136 @@ const MesaCard = ({ order, onAction }: { order: Order; onAction: (id: string, st
         </div>
 
         {/* Total */}
-        <div className="mb-3 flex items-center justify-between border-t border-border/40 pt-2.5">
-          <span className="text-[11px] font-medium text-muted-foreground">Total</span>
-          <span className="font-display text-2xl text-primary">${order.total}</span>
+        <div className="mb-3 flex items-center justify-between border-t border-white/[0.06] pt-3">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Total</span>
+          <span className="font-display text-3xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-blue-400">${order.total}</span>
         </div>
 
-        {/* Actions */}
         {!isDone && <ActionButtons order={order} onAction={onAction} />}
       </div>
     </motion.div>
   );
 };
 
-// ── Delivery order card ──
+/* ═══════════════════════════════════════════
+   DELIVERY ORDER CARD
+   ═══════════════════════════════════════════ */
 const DeliveryCard = ({ order, onAction }: { order: Order; onAction: (id: string, status: OrderStatus) => void }) => {
   const elapsed = useElapsed(order.createdAt);
   const mins = Math.floor(elapsed / 60);
-  const cfg = STATUS_CFG[order.status];
   const isDone = order.status === "entregado";
+  const cfg = STATUS[order.status];
   const dd = order.deliveryDetails;
-  const StatusIcon = cfg.icon;
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      transition={{ duration: 0.25 }}
+    <motion.div layout initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }}
+      transition={{ duration: 0.2 }}
       className={cn(
-        "group overflow-hidden rounded-2xl border transition-all",
-        isDone ? "border-border/30 opacity-40" : "border-border hover:border-accent/30",
-        !isDone && mins >= 20 && "ring-2 ring-destructive/20"
-      )}
-    >
-      {/* Card header */}
-      <div className={cn("flex items-center justify-between px-4 py-2.5", isDone ? "bg-muted/30" : "bg-gradient-to-r from-primary/80 to-accent/50")}>
+        "relative overflow-hidden rounded-2xl border transition-all",
+        isDone ? "border-white/[0.03] opacity-35" : cn("border-white/[0.08]", cfg.glow),
+        !isDone && mins >= 20 && "ring-1 ring-red-500/30"
+      )}>
+      {!isDone && <PriorityBar minutes={mins} />}
+
+      {/* Header */}
+      <div className={cn("flex items-center justify-between px-4 py-3 pl-5", isDone ? "bg-white/[0.01]" : "bg-gradient-to-r from-violet-500/15 to-fuchsia-500/10")}>
         <div className="flex items-center gap-2.5">
-          <PriorityDot minutes={isDone ? 0 : mins} />
-          <Truck size={14} className="text-primary-foreground" />
-          <span className="text-sm font-bold text-primary-foreground">Domicilio</span>
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 ring-1 ring-white/[0.08]">
+            <Truck size={15} className="text-violet-300" />
+          </div>
+          <div>
+            <span className="text-sm font-bold text-white">Domicilio</span>
+            <div className="flex items-center gap-1.5 text-[10px] text-slate-500">
+              <Hash size={8} />{order.id}
+            </div>
+          </div>
         </div>
-        <div className="flex items-center gap-1.5 rounded-full bg-background/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-foreground">
-          <StatusIcon size={11} />
-          {cfg.label}
-        </div>
+        <StatusBadge status={order.status} />
       </div>
 
-      <div className="bg-card p-3.5">
-        {/* Timer + meta */}
+      {/* Body */}
+      <div className="bg-slate-900/60 p-4 pl-5">
+        {/* Time row */}
         <div className="mb-3 flex items-center justify-between">
-          <div className="space-y-0.5">
-            <p className="font-mono text-[10px] text-muted-foreground/60">{order.id}</p>
-            <p className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Clock size={10} />
-              {order.createdAt.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })}
-            </p>
+          <div className="flex items-center gap-2 text-xs text-slate-400">
+            <Clock size={12} className="text-slate-500" />
+            <span>{order.createdAt.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })}</span>
+            {!isDone && mins >= 10 && (
+              <span className={cn("flex items-center gap-1 font-bold", mins >= 20 ? "text-red-400" : "text-amber-400")}>
+                {mins >= 20 ? <Flame size={11} /> : <AlertTriangle size={11} />}
+                {mins >= 20 ? "¡Urgente!" : "Atención"}
+              </span>
+            )}
           </div>
-          {!isDone && <CircularTimer createdAt={order.createdAt} />}
+          {!isDone && <GlowTimer createdAt={order.createdAt} />}
         </div>
 
-        {/* Customer info */}
-        <div className="mb-3 space-y-1.5 rounded-xl border border-border/40 bg-muted/30 p-2.5">
+        {/* Customer block */}
+        <div className="mb-3 space-y-1.5 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
           {order.customerName && (
-            <div className="flex items-center gap-2 text-xs">
-              <User size={12} className="shrink-0 text-primary" />
-              <span className="font-semibold text-foreground">{order.customerName}</span>
-            </div>
+            <div className="flex items-center gap-2 text-xs"><User size={12} className="text-violet-400" /><span className="font-semibold text-white">{order.customerName}</span></div>
           )}
           {order.customerPhone && (
-            <div className="flex items-center gap-2 text-xs">
-              <Phone size={12} className="shrink-0 text-emerald-400" />
-              <a href={`tel:${order.customerPhone}`} className="text-emerald-400 hover:underline">{order.customerPhone}</a>
-            </div>
+            <div className="flex items-center gap-2 text-xs"><Phone size={12} className="text-emerald-400" /><a href={`tel:${order.customerPhone}`} className="text-emerald-400 hover:underline">{order.customerPhone}</a></div>
           )}
           {order.customerAddress && (
-            <div className="flex items-start gap-2 text-xs">
-              <MapPin size={12} className="mt-0.5 shrink-0 text-accent" />
-              <span className="text-foreground/80">{order.customerAddress}</span>
-            </div>
+            <div className="flex items-start gap-2 text-xs"><MapPin size={12} className="mt-0.5 text-amber-400" /><span className="text-slate-300">{order.customerAddress}</span></div>
           )}
           {dd && (
             <>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="flex items-center gap-2 text-[11px] text-slate-500">
                 {dd.type === "casa" ? <Home size={11} /> : <Building2 size={11} />}
                 <span className="capitalize">{dd.type === "casa" ? "Casa" : `Depto ${dd.aptNumber || ""} · Piso ${dd.floor || ""}`}</span>
               </div>
               {dd.references && (
-                <div className="flex items-start gap-2 text-xs">
-                  <Navigation size={11} className="mt-0.5 shrink-0 text-muted-foreground" />
-                  <span className="text-muted-foreground">{dd.references}</span>
-                </div>
+                <div className="flex items-start gap-2 text-[11px]"><Navigation size={11} className="mt-0.5 text-slate-600" /><span className="text-slate-500">{dd.references}</span></div>
               )}
               {dd.hasControlledAccess && dd.accessInstructions && (
-                <div className="flex items-start gap-2 text-xs">
-                  <AlertTriangle size={11} className="mt-0.5 shrink-0 text-destructive" />
-                  <span className="text-destructive/80">{dd.accessInstructions}</span>
-                </div>
+                <div className="flex items-start gap-2 text-[11px]"><AlertTriangle size={11} className="mt-0.5 text-red-400" /><span className="text-red-400/80">{dd.accessInstructions}</span></div>
               )}
               <div className="flex items-center gap-2 text-xs">
-                {dd.paymentMethod === "efectivo" ? <Banknote size={11} className="text-emerald-400" /> : <CreditCard size={11} className="text-primary" />}
-                <span className="font-semibold capitalize text-foreground">{dd.paymentMethod}</span>
+                {dd.paymentMethod === "efectivo" ? <Banknote size={11} className="text-emerald-400" /> : <CreditCard size={11} className="text-cyan-400" />}
+                <span className="font-semibold capitalize text-white">{dd.paymentMethod}</span>
               </div>
             </>
           )}
         </div>
 
-        {/* Items */}
-        <div className="mb-3">
-          <OrderItemsList items={order.items} />
+        <div className="mb-3"><OrderItemsList items={order.items} /></div>
+
+        <div className="mb-3 flex items-center justify-between border-t border-white/[0.06] pt-3">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Total</span>
+          <span className="font-display text-3xl text-transparent bg-clip-text bg-gradient-to-r from-violet-300 to-fuchsia-400">${order.total}</span>
         </div>
 
-        {/* Total */}
-        <div className="mb-3 flex items-center justify-between border-t border-border/40 pt-2.5">
-          <span className="text-[11px] font-medium text-muted-foreground">Total</span>
-          <span className="font-display text-2xl text-accent">${order.total}</span>
-        </div>
-
-        {/* WhatsApp */}
         {!isDone && order.customerPhone && (
-          <a
-            href={`https://wa.me/52${order.customerPhone.replace(/\D/g, "")}?text=${encodeURIComponent(`Hola ${order.customerName || ""}, tu pedido de Rigo's está ${order.status === "listo" ? "listo y en camino 🚗" : "siendo preparado 🍳"}`)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mb-2 flex items-center justify-center gap-2 rounded-xl bg-emerald-400/10 py-2 text-xs font-bold text-emerald-400 ring-1 ring-emerald-400/20 transition-all hover:bg-emerald-400/20"
-          >
-            <Phone size={12} /> WhatsApp <ArrowUpRight size={10} />
+          <a href={`https://wa.me/52${order.customerPhone.replace(/\D/g, "")}?text=${encodeURIComponent(`Hola ${order.customerName || ""}, tu pedido de Rigo's está ${order.status === "listo" ? "listo y en camino 🚗" : "siendo preparado 🍳"}`)}`}
+            target="_blank" rel="noopener noreferrer"
+            className="mb-2 flex items-center justify-center gap-2 rounded-xl bg-emerald-500/10 py-2 text-xs font-bold text-emerald-400 ring-1 ring-emerald-400/20 transition-all hover:bg-emerald-500/20">
+            <Phone size={12} /> WhatsApp <ExternalLink size={10} />
           </a>
         )}
 
-        {/* Actions */}
         {!isDone && <ActionButtons order={order} onAction={onAction} isDelivery />}
       </div>
     </motion.div>
   );
 };
 
-// ── Status section header ──
-const StatusHeader = ({ status, count }: { status: OrderStatus; count: number }) => {
-  const cfg = STATUS_CFG[status];
+/* ═══════════════════════════════════════════
+   STATUS HEADER
+   ═══════════════════════════════════════════ */
+const StatusSection = ({ status, count }: { status: OrderStatus; count: number }) => {
+  const cfg = STATUS[status];
   const Icon = cfg.icon;
   return (
-    <div className="flex items-center gap-2">
-      <div className={cn("flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold uppercase tracking-wider ring-1", cfg.bg, cfg.color, cfg.ring)}>
+    <div className="flex items-center gap-2.5">
+      <div className={cn("flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest", cfg.bg, cfg.text, cfg.border)}>
         <Icon size={13} />
         {cfg.label}
       </div>
       {count > 0 && (
-        <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-muted px-1.5 text-[10px] font-bold tabular-nums text-muted-foreground">
+        <span className="flex h-6 min-w-6 items-center justify-center rounded-lg bg-white/[0.05] px-1.5 font-mono text-[11px] font-bold tabular-nums text-slate-400 ring-1 ring-white/[0.08]">
           {count}
         </span>
       )}
@@ -466,244 +455,191 @@ const StatusHeader = ({ status, count }: { status: OrderStatus; count: number })
   );
 };
 
-// ── Kanban column ──
-const KanbanCol = ({
-  status,
-  orders,
-  renderCard,
-}: {
-  status: OrderStatus;
-  orders: Order[];
-  renderCard: (o: Order) => React.ReactNode;
+/* ═══════════════════════════════════════════
+   KANBAN COLUMN
+   ═══════════════════════════════════════════ */
+const KanbanCol = ({ status, orders, renderCard }: {
+  status: OrderStatus; orders: Order[]; renderCard: (o: Order) => React.ReactNode;
 }) => {
   if (orders.length === 0 && status === "entregado") return null;
-
   return (
     <div className="space-y-3">
-      <StatusHeader status={status} count={orders.length} />
+      <StatusSection status={status} count={orders.length} />
       <AnimatePresence mode="popLayout">
-        {orders.map((o) => (
-          <div key={o.id}>{renderCard(o)}</div>
-        ))}
+        {orders.map((o) => <div key={o.id}>{renderCard(o)}</div>)}
       </AnimatePresence>
       {orders.length === 0 && (
-        <div className="flex flex-col items-center rounded-xl border border-dashed border-border/40 py-8 text-center">
-          <span className="text-2xl opacity-30">📭</span>
-          <p className="mt-1 text-xs text-muted-foreground/40">Sin pedidos</p>
+        <div className="flex flex-col items-center rounded-2xl border border-dashed border-white/[0.06] py-10 text-center">
+          <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.03]">
+            <Package size={18} className="text-slate-700" />
+          </div>
+          <p className="text-xs text-slate-600">Sin pedidos</p>
         </div>
       )}
     </div>
   );
 };
 
-// ── Empty panel ──
+/* ═══════════════════════════════════════════
+   EMPTY PANEL
+   ═══════════════════════════════════════════ */
 const EmptyPanel = ({ type }: { type: "mesas" | "domicilio" }) => (
-  <div className="flex flex-col items-center justify-center py-20 text-center">
-    <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-muted/50">
-      {type === "mesas" ? <Utensils size={28} className="text-muted-foreground/40" /> : <Truck size={28} className="text-muted-foreground/40" />}
+  <div className="flex flex-col items-center justify-center py-24 text-center">
+    <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-white/[0.03] to-white/[0.01] ring-1 ring-white/[0.06]">
+      {type === "mesas" ? <Utensils size={32} className="text-slate-700" /> : <Truck size={32} className="text-slate-700" />}
     </div>
-    <p className="text-sm font-medium text-muted-foreground/60">
-      No hay pedidos de {type === "mesas" ? "mesas" : "domicilio"}
-    </p>
-    <p className="mt-1 text-xs text-muted-foreground/30">Aparecerán aquí en tiempo real</p>
+    <p className="text-sm font-medium text-slate-500">No hay pedidos de {type === "mesas" ? "mesas" : "domicilio"}</p>
+    <p className="mt-1 text-xs text-slate-700">Aparecerán aquí en tiempo real</p>
   </div>
 );
 
-// ══════════════════════════════════════════
-// MAIN COMPONENT
-// ══════════════════════════════════════════
+/* ═══════════════════════════════════════════
+   MAIN COMPONENT
+   ═══════════════════════════════════════════ */
 const AdminOrders = () => {
   const { orders, updateOrderStatus } = useOrders();
   const [viewMode, setViewMode] = useState<ViewMode>("todo");
   const [paymentOrder, setPaymentOrder] = useState<Order | null>(null);
 
-  const handleAction = useCallback(
-    (id: string, status: OrderStatus) => {
-      if (status === "entregado") {
-        const order = orders.find((o) => o.id === id);
-        if (order && order.orderType === "mesa") {
-          setPaymentOrder(order);
-          return;
-        }
-      }
-      updateOrderStatus(id, status);
-    },
-    [orders, updateOrderStatus]
-  );
+  const handleAction = useCallback((id: string, status: OrderStatus) => {
+    if (status === "entregado") {
+      const order = orders.find((o) => o.id === id);
+      if (order && order.orderType === "mesa") { setPaymentOrder(order); return; }
+    }
+    updateOrderStatus(id, status);
+  }, [orders, updateOrderStatus]);
 
-  const handlePaymentConfirm = useCallback(
-    (_method: "efectivo" | "transferencia") => {
-      if (paymentOrder) {
-        updateOrderStatus(paymentOrder.id, "entregado");
-        setPaymentOrder(null);
-      }
-    },
-    [paymentOrder, updateOrderStatus]
-  );
+  const handlePaymentConfirm = useCallback((_m: "efectivo" | "transferencia") => {
+    if (paymentOrder) { updateOrderStatus(paymentOrder.id, "entregado"); setPaymentOrder(null); }
+  }, [paymentOrder, updateOrderStatus]);
 
-  // Sorted by oldest first (most urgent at top)
-  const sortOldestFirst = (list: Order[]) => [...list].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
-  const sortNewestFirst = (list: Order[]) => [...list].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  const sortOld = (l: Order[]) => [...l].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+  const sortNew = (l: Order[]) => [...l].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
   const mesaOrders = useMemo(() => orders.filter((o) => o.orderType === "mesa"), [orders]);
   const deliveryOrders = useMemo(() => orders.filter((o) => o.orderType === "domicilio"), [orders]);
-
   const activeMesa = mesaOrders.filter((o) => o.status !== "entregado").length;
   const activeDelivery = deliveryOrders.filter((o) => o.status !== "entregado").length;
   const totalActive = activeMesa + activeDelivery;
   const totalRevenue = orders.reduce((s, o) => s + o.total, 0);
   const avgTicket = orders.length > 0 ? Math.round(totalRevenue / orders.length) : 0;
 
-  const groupByStatus = useCallback((list: Order[]) => ({
-    recibido: sortOldestFirst(list.filter((o) => o.status === "recibido")),
-    preparando: sortOldestFirst(list.filter((o) => o.status === "preparando")),
-    listo: sortOldestFirst(list.filter((o) => o.status === "listo")),
-    entregado: sortNewestFirst(list.filter((o) => o.status === "entregado")).slice(0, 5),
+  const group = useCallback((list: Order[]) => ({
+    recibido: sortOld(list.filter((o) => o.status === "recibido")),
+    preparando: sortOld(list.filter((o) => o.status === "preparando")),
+    listo: sortOld(list.filter((o) => o.status === "listo")),
+    entregado: sortNew(list.filter((o) => o.status === "entregado")).slice(0, 5),
   }), []);
 
-  const mesaByStatus = useMemo(() => groupByStatus(mesaOrders), [mesaOrders, groupByStatus]);
-  const deliveryByStatus = useMemo(() => groupByStatus(deliveryOrders), [deliveryOrders, groupByStatus]);
+  const mesaG = useMemo(() => group(mesaOrders), [mesaOrders, group]);
+  const delG = useMemo(() => group(deliveryOrders), [deliveryOrders, group]);
+  const ACTIVE: OrderStatus[] = ["recibido", "preparando", "listo"];
+  const ALL: OrderStatus[] = ["recibido", "preparando", "listo", "entregado"];
 
-  const ACTIVE_STATUSES: OrderStatus[] = ["recibido", "preparando", "listo"];
-  const ALL_STATUSES: OrderStatus[] = ["recibido", "preparando", "listo", "entregado"];
-
-  const tabs: { key: ViewMode; label: string; icon: React.ElementType; count: number }[] = [
-    { key: "todo", label: "Vista completa", icon: Sparkles, count: totalActive },
-    { key: "mesas", label: "Mesas", icon: Utensils, count: activeMesa },
-    { key: "domicilio", label: "Domicilio", icon: Truck, count: activeDelivery },
+  const tabs: { key: ViewMode; label: string; icon: React.ElementType; count: number; color: string }[] = [
+    { key: "todo", label: "Vista completa", icon: Sparkles, count: totalActive, color: "from-cyan-400 to-blue-500" },
+    { key: "mesas", label: "Mesas", icon: Utensils, count: activeMesa, color: "from-cyan-400 to-teal-500" },
+    { key: "domicilio", label: "Domicilio", icon: Truck, count: activeDelivery, color: "from-violet-400 to-fuchsia-500" },
   ];
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Pedidos hoy" value={orders.length} icon={ShoppingCart} accent="text-primary" />
-        <StatCard label="Activos" value={totalActive} icon={Zap} accent="text-amber-400" />
-        <StatCard label="Ventas" value={`$${totalRevenue.toLocaleString()}`} icon={TrendingUp} accent="text-emerald-400" />
-        <StatCard label="Ticket promedio" value={`$${avgTicket}`} icon={Receipt} accent="text-primary" />
+        <StatCard label="Pedidos hoy" value={orders.length} icon={ShoppingCart} color="text-cyan-400" glowColor="rgba(6,182,212,0.08)" />
+        <StatCard label="Activos" value={totalActive} icon={Zap} color="text-amber-400" glowColor="rgba(245,158,11,0.08)" />
+        <StatCard label="Ventas" value={`$${totalRevenue.toLocaleString()}`} icon={TrendingUp} color="text-emerald-400" glowColor="rgba(52,211,153,0.08)" />
+        <StatCard label="Ticket promedio" value={`$${avgTicket}`} icon={Receipt} color="text-violet-400" glowColor="rgba(167,139,250,0.08)" />
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1.5 rounded-2xl bg-card/80 p-1.5 ring-1 ring-border">
+      <div className="flex items-center gap-1 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-1.5 backdrop-blur-sm">
         {tabs.map((tab) => {
           const TabIcon = tab.icon;
-          const isActive = viewMode === tab.key;
+          const active = viewMode === tab.key;
           return (
-            <button
-              key={tab.key}
-              onClick={() => setViewMode(tab.key)}
+            <button key={tab.key} onClick={() => setViewMode(tab.key)}
               className={cn(
                 "relative flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all",
-                isActive
-                  ? "bg-primary text-primary-foreground shadow-brand"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              )}
-            >
+                active ? `bg-gradient-to-r ${tab.color} text-white shadow-lg` : "text-slate-400 hover:bg-white/[0.04] hover:text-white"
+              )}>
               <TabIcon size={15} />
               <span className="hidden sm:inline">{tab.label}</span>
               {tab.count > 0 && (
-                <span className={cn(
-                  "flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-bold tabular-nums",
-                  isActive ? "bg-primary-foreground/20 text-primary-foreground" : "bg-destructive text-destructive-foreground"
-                )}>
-                  {tab.count}
-                </span>
+                <span className={cn("flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-bold tabular-nums",
+                  active ? "bg-white/20 text-white" : "bg-red-500/80 text-white"
+                )}>{tab.count}</span>
               )}
             </button>
           );
         })}
       </div>
 
-      {/* ═══ SPLIT VIEW ═══ */}
+      {/* SPLIT VIEW */}
       {viewMode === "todo" && (
         <div className="grid gap-5 lg:grid-cols-2">
-          {/* MESAS */}
-          <section className="rounded-2xl border border-border bg-card/40 p-4">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary">
-                  <Utensils size={18} className="text-secondary-foreground" />
+          <section className="rounded-2xl border border-white/[0.06] bg-gradient-to-b from-white/[0.02] to-transparent p-5">
+            <div className="mb-5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 ring-1 ring-white/[0.08]">
+                  <Utensils size={20} className="text-cyan-300" />
                 </div>
                 <div>
-                  <h2 className="font-display text-xl text-foreground">Mesas</h2>
-                  <p className="text-[10px] text-muted-foreground">{activeMesa} activo{activeMesa !== 1 ? "s" : ""}</p>
+                  <h2 className="font-display text-xl text-white">Mesas</h2>
+                  <p className="text-[10px] font-medium text-slate-500">{activeMesa} activo{activeMesa !== 1 ? "s" : ""}</p>
                 </div>
               </div>
-              <button onClick={() => setViewMode("mesas")} className="flex items-center gap-1 text-xs font-medium text-primary hover:underline">
+              <button onClick={() => setViewMode("mesas")} className="flex items-center gap-1 text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition-colors">
                 Ver todo <ArrowUpRight size={12} />
               </button>
             </div>
-            {activeMesa === 0 && mesaOrders.filter(o => o.status === "entregado").length === 0 ? (
-              <EmptyPanel type="mesas" />
-            ) : (
-              <div className="space-y-5">
-                {ACTIVE_STATUSES.map((s) => (
-                  <KanbanCol key={s} status={s} orders={mesaByStatus[s]} renderCard={(o) => <MesaCard order={o} onAction={handleAction} />} />
-                ))}
-              </div>
+            {activeMesa === 0 && mesaOrders.filter(o => o.status === "entregado").length === 0 ? <EmptyPanel type="mesas" /> : (
+              <div className="space-y-5">{ACTIVE.map((s) => <KanbanCol key={s} status={s} orders={mesaG[s]} renderCard={(o) => <MesaCard order={o} onAction={handleAction} />} />)}</div>
             )}
           </section>
 
-          {/* DOMICILIO */}
-          <section className="rounded-2xl border border-border bg-card/40 p-4">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary/70 to-accent/50">
-                  <Truck size={18} className="text-primary-foreground" />
+          <section className="rounded-2xl border border-white/[0.06] bg-gradient-to-b from-white/[0.02] to-transparent p-5">
+            <div className="mb-5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 ring-1 ring-white/[0.08]">
+                  <Truck size={20} className="text-violet-300" />
                 </div>
                 <div>
-                  <h2 className="font-display text-xl text-foreground">Domicilio</h2>
-                  <p className="text-[10px] text-muted-foreground">{activeDelivery} activo{activeDelivery !== 1 ? "s" : ""}</p>
+                  <h2 className="font-display text-xl text-white">Domicilio</h2>
+                  <p className="text-[10px] font-medium text-slate-500">{activeDelivery} activo{activeDelivery !== 1 ? "s" : ""}</p>
                 </div>
               </div>
-              <button onClick={() => setViewMode("domicilio")} className="flex items-center gap-1 text-xs font-medium text-primary hover:underline">
+              <button onClick={() => setViewMode("domicilio")} className="flex items-center gap-1 text-xs font-semibold text-violet-400 hover:text-violet-300 transition-colors">
                 Ver todo <ArrowUpRight size={12} />
               </button>
             </div>
-            {activeDelivery === 0 && deliveryOrders.filter(o => o.status === "entregado").length === 0 ? (
-              <EmptyPanel type="domicilio" />
-            ) : (
-              <div className="space-y-5">
-                {ACTIVE_STATUSES.map((s) => (
-                  <KanbanCol key={s} status={s} orders={deliveryByStatus[s]} renderCard={(o) => <DeliveryCard order={o} onAction={handleAction} />} />
-                ))}
-              </div>
+            {activeDelivery === 0 && deliveryOrders.filter(o => o.status === "entregado").length === 0 ? <EmptyPanel type="domicilio" /> : (
+              <div className="space-y-5">{ACTIVE.map((s) => <KanbanCol key={s} status={s} orders={delG[s]} renderCard={(o) => <DeliveryCard order={o} onAction={handleAction} />} />)}</div>
             )}
           </section>
         </div>
       )}
 
-      {/* ═══ MESAS ONLY ═══ */}
+      {/* MESAS ONLY */}
       {viewMode === "mesas" && (
-        activeMesa === 0 && mesaOrders.filter(o => o.status === "entregado").length === 0 ? (
-          <EmptyPanel type="mesas" />
-        ) : (
+        activeMesa === 0 && mesaOrders.filter(o => o.status === "entregado").length === 0 ? <EmptyPanel type="mesas" /> : (
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {ALL_STATUSES.map((s) => (
-              <KanbanCol key={s} status={s} orders={mesaByStatus[s]} renderCard={(o) => <MesaCard order={o} onAction={handleAction} />} />
-            ))}
+            {ALL.map((s) => <KanbanCol key={s} status={s} orders={mesaG[s]} renderCard={(o) => <MesaCard order={o} onAction={handleAction} />} />)}
           </div>
         )
       )}
 
-      {/* ═══ DOMICILIO ONLY ═══ */}
+      {/* DOMICILIO ONLY */}
       {viewMode === "domicilio" && (
-        activeDelivery === 0 && deliveryOrders.filter(o => o.status === "entregado").length === 0 ? (
-          <EmptyPanel type="domicilio" />
-        ) : (
+        activeDelivery === 0 && deliveryOrders.filter(o => o.status === "entregado").length === 0 ? <EmptyPanel type="domicilio" /> : (
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {ALL_STATUSES.map((s) => (
-              <KanbanCol key={s} status={s} orders={deliveryByStatus[s]} renderCard={(o) => <DeliveryCard order={o} onAction={handleAction} />} />
-            ))}
+            {ALL.map((s) => <KanbanCol key={s} status={s} orders={delG[s]} renderCard={(o) => <DeliveryCard order={o} onAction={handleAction} />} />)}
           </div>
         )
       )}
 
-      {/* Payment dialog */}
       <AnimatePresence>
-        {paymentOrder && (
-          <PaymentDialog order={paymentOrder} onConfirm={handlePaymentConfirm} onClose={() => setPaymentOrder(null)} />
-        )}
+        {paymentOrder && <PaymentDialog order={paymentOrder} onConfirm={handlePaymentConfirm} onClose={() => setPaymentOrder(null)} />}
       </AnimatePresence>
     </div>
   );
