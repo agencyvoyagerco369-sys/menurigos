@@ -3,26 +3,14 @@ import { useAuth } from "@/context/AuthContext";
 import { useOrders } from "@/context/OrdersContext";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { cn } from "@/lib/utils";
+import { T } from "@/lib/admin-theme";
 import {
   BarChart3, Bell, Box, DollarSign, Home, LogOut,
   Menu as MenuIcon, Moon, Settings, Sun, TrendingUp, X,
 } from "lucide-react";
 import logoRigos from "@/assets/logo-rigos.png";
 
-const D = {
-  bg: "#0F1117",
-  bgContent: "#151820",
-  sidebar: "#0B0D14",
-  sidebarBorder: "#1E2330",
-  card: "#1A1F2E",
-  border: "#252D3D",
-  brand: "#D42B2B",
-  text: "#F1F3F8",
-  textMuted: "#8892A6",
-  textDim: "#5C6478",
-  topbar: "#111520",
-  topbarBorder: "#1E2330",
-};
+const D = T;
 
 const NAV_ITEMS = [
   { path: "/admin/inicio", label: "Inicio", icon: Home },
@@ -105,7 +93,7 @@ const AdminLayout = () => {
   };
 
   return (
-    <div className="flex min-h-screen w-full font-pos" style={{ background: D.bgContent }}>
+    <div className="flex min-h-screen w-full font-pos" style={{ background: D.bg }}>
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 lg:hidden" style={{ background: "#00000070", backdropFilter: "blur(4px)" }}
@@ -181,7 +169,7 @@ const AdminLayout = () => {
       </aside>
 
       {/* Main content */}
-      <div className="flex flex-1 flex-col" style={{ background: D.bgContent }}>
+      <div className="flex flex-1 flex-col" style={{ background: D.bg }}>
         {/* Top bar */}
         <header className="sticky top-0 z-30 flex items-center justify-between px-4 py-3 lg:px-6"
           style={{ background: D.topbar, borderBottom: `1px solid ${D.topbarBorder}` }}>
