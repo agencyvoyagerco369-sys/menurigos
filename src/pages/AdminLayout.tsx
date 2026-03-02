@@ -4,28 +4,32 @@ import { useOrders } from "@/context/OrdersContext";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import {
-  BarChart3,
-  Bell,
-  Box,
-  DollarSign,
-  Home,
-  LogOut,
-  Menu as MenuIcon,
-  Moon,
-  Settings,
-  Sun,
-  TrendingUp,
-  X,
+  BarChart3, Bell, Box, DollarSign, Home, LogOut,
+  Menu as MenuIcon, Moon, Settings, Sun, TrendingUp, X,
 } from "lucide-react";
 import logoRigos from "@/assets/logo-rigos.png";
 
+const DARK = {
+  sidebar: "#0F1117",
+  sidebarBorder: "#1A1D27",
+  bg: "#151820",
+  card: "#1E2330",
+  cardBorder: "#2A3040",
+  text: "#E8ECF4",
+  textMuted: "#8A94A6",
+  textDim: "#5A6478",
+  surface: "#252B3B",
+  accent: "#10B981",
+  accentBg: "#10B98115",
+};
+
 const NAV_ITEMS = [
-  { path: "/admin/inicio", label: "Inicio", icon: Home, emoji: "📊" },
-  { path: "/admin/pedidos", label: "Pedidos activos", icon: Bell, emoji: "🛎" },
-  { path: "/admin/productos", label: "Productos", icon: Box, emoji: "📦" },
-  { path: "/admin/caja", label: "Caja del día", icon: DollarSign, emoji: "💰" },
-  { path: "/admin/reportes", label: "Reportes", icon: TrendingUp, emoji: "📈" },
-  { path: "/admin/config", label: "Configuración", icon: Settings, emoji: "⚙️" },
+  { path: "/admin/inicio", label: "Inicio", icon: Home },
+  { path: "/admin/pedidos", label: "Pedidos activos", icon: Bell },
+  { path: "/admin/productos", label: "Productos", icon: Box },
+  { path: "/admin/caja", label: "Caja del día", icon: DollarSign },
+  { path: "/admin/reportes", label: "Reportes", icon: TrendingUp },
+  { path: "/admin/config", label: "Configuración", icon: Settings },
 ];
 
 const AdminLayout = () => {
@@ -40,11 +44,10 @@ const AdminLayout = () => {
   });
 
   const hasActiveOrders = orders.some((o) => o.status !== "entregado");
+  const activeCount = orders.filter((o) => o.status !== "entregado").length;
 
   useEffect(() => {
-    if (!loading && !user) {
-      navigate("/admin");
-    }
+    if (!loading && !user) navigate("/admin");
   }, [user, loading, navigate]);
 
   useEffect(() => {
@@ -52,7 +55,6 @@ const AdminLayout = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Kitchen mode persistence & CSS
   useEffect(() => {
     localStorage.setItem("rigos-kitchen-mode", String(kitchenMode));
     if (kitchenMode) {
@@ -68,19 +70,15 @@ const AdminLayout = () => {
     };
   }, [kitchenMode]);
 
-  // 🔔 Notification sound when new order arrives
+  // 🔔 Notification sound
   const prevOrderCountRef = useRef(orders.length);
   const audioContextRef = useRef<AudioContext | null>(null);
 
   const playNotificationSound = useCallback(() => {
     try {
-      if (!audioContextRef.current) {
-        audioContextRef.current = new AudioContext();
-      }
+      if (!audioContextRef.current) audioContextRef.current = new AudioContext();
       const ctx = audioContextRef.current;
       const now = ctx.currentTime;
-
-      // Two ascending tones: "ding-ding"
       [0, 0.15].forEach((delay, i) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
@@ -93,35 +91,25 @@ const AdminLayout = () => {
         osc.start(now + delay);
         osc.stop(now + delay + 0.4);
       });
-
-      // Browser notification too
       if ("Notification" in window && Notification.permission === "granted") {
         new Notification("🛎 Nuevo pedido en Rigo's", { body: "Tienes un nuevo pedido por atender." });
       }
-    } catch (e) {
-      console.warn("Could not play notification sound:", e);
-    }
+    } catch (e) { console.warn("Could not play notification sound:", e); }
   }, []);
 
-  // Request notification permission on mount
   useEffect(() => {
-    if ("Notification" in window && Notification.permission === "default") {
-      Notification.requestPermission();
-    }
+    if ("Notification" in window && Notification.permission === "default") Notification.requestPermission();
   }, []);
 
-  // Detect new orders and play sound
   useEffect(() => {
-    if (orders.length > prevOrderCountRef.current) {
-      playNotificationSound();
-    }
+    if (orders.length > prevOrderCountRef.current) playNotificationSound();
     prevOrderCountRef.current = orders.length;
   }, [orders.length, playNotificationSound]);
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="animate-pulse font-display text-3xl text-primary">Cargando...</div>
+      <div className="flex min-h-screen items-center justify-center" style={{ background: DARK.bg }}>
+        <div className="animate-pulse font-pos-display text-2xl font-bold" style={{ color: DARK.accent }}>Cargando...</div>
       </div>
     );
   }
@@ -134,57 +122,55 @@ const AdminLayout = () => {
   };
 
   return (
-    <div className="flex min-h-screen w-full">
+    <div className="flex min-h-screen w-full font-pos">
       {/* Mobile overlay */}
       {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-background/60 backdrop-blur-sm lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
+        <div className="fixed inset-0 z-40 lg:hidden" style={{ background: "#00000060", backdropFilter: "blur(4px)" }}
+          onClick={() => setSidebarOpen(false)} />
       )}
 
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-secondary transition-transform lg:static lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex w-60 flex-col transition-transform lg:static lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
-      >
+        style={{ background: DARK.sidebar, borderRight: `1px solid ${DARK.sidebarBorder}` }}>
+
         {/* Logo */}
-        <div className="flex items-center gap-3 border-b border-sidebar-border px-5 py-4">
-          <img src={logoRigos} alt="Rigo's" className="h-10 w-10" />
+        <div className="flex items-center gap-3 px-5 py-5" style={{ borderBottom: `1px solid ${DARK.sidebarBorder}` }}>
+          <img src={logoRigos} alt="Rigo's" className="h-9 w-9 rounded-lg" />
           <div>
-            <h2 className="font-display text-2xl leading-tight text-accent">Rigo's</h2>
-            <p className="text-[10px] uppercase tracking-[0.2em] text-sidebar-foreground/50">Panel de Control</p>
+            <h2 className="text-xl font-extrabold font-pos-display leading-tight" style={{ color: DARK.text }}>
+              Rigo's
+            </h2>
+            <p className="text-[9px] font-bold uppercase tracking-[0.2em]" style={{ color: DARK.textDim }}>Restaurant POS</p>
           </div>
           <button className="ml-auto lg:hidden" onClick={() => setSidebarOpen(false)}>
-            <X size={20} className="text-sidebar-foreground/60" />
+            <X size={18} style={{ color: DARK.textDim }} />
           </button>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 space-y-1 px-3 py-4">
+        <nav className="flex-1 space-y-0.5 px-3 py-4">
           {NAV_ITEMS.map((item) => {
             const active = location.pathname === item.path;
             return (
               <button
                 key={item.path}
-                onClick={() => {
-                  navigate(item.path);
-                  setSidebarOpen(false);
-                }}
-                className={cn(
-                  "flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all",
-                  active
-                    ? "bg-sidebar-accent text-sidebar-primary shadow-sm"
-                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
-                )}
-              >
-                <span className="text-base">{item.emoji}</span>
+                onClick={() => { navigate(item.path); setSidebarOpen(false); }}
+                className="relative flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all duration-150"
+                style={{
+                  background: active ? DARK.accentBg : "transparent",
+                  color: active ? DARK.accent : DARK.textMuted,
+                  borderLeft: active ? `3px solid ${DARK.accent}` : "3px solid transparent",
+                }}>
+                <item.icon size={18} />
                 <span>{item.label}</span>
-                {item.path === "/admin/pedidos" && hasActiveOrders && (
-                  <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
-                    {orders.filter((o) => o.status !== "entregado").length}
+                {item.path === "/admin/pedidos" && activeCount > 0 && (
+                  <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-md px-1 text-[10px] font-bold"
+                    style={{ background: "#EF444425", color: "#F87171" }}>
+                    {activeCount}
                   </span>
                 )}
               </button>
@@ -193,11 +179,13 @@ const AdminLayout = () => {
         </nav>
 
         {/* Logout */}
-        <div className="border-t border-sidebar-border px-3 py-4">
+        <div className="px-3 py-4" style={{ borderTop: `1px solid ${DARK.sidebarBorder}` }}>
           <button
             onClick={handleSignOut}
-            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-sidebar-foreground/60 transition-colors hover:bg-destructive/10 hover:text-destructive"
-          >
+            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors duration-150"
+            style={{ color: DARK.textDim }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = "#F87171"; e.currentTarget.style.background = "#EF444410"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = DARK.textDim; e.currentTarget.style.background = "transparent"; }}>
             <LogOut size={18} />
             Cerrar sesión
           </button>
@@ -205,51 +193,49 @@ const AdminLayout = () => {
       </aside>
 
       {/* Main content */}
-      <div className="flex flex-1 flex-col bg-muted/30">
+      <div className="flex flex-1 flex-col" style={{ background: DARK.bg }}>
         {/* Top bar */}
-        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border bg-card px-4 py-3 shadow-sm lg:px-6">
-          <button
-            className="rounded-lg p-2 text-foreground hover:bg-muted lg:hidden"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <MenuIcon size={22} />
+        <header className="sticky top-0 z-30 flex items-center justify-between px-4 py-3 lg:px-6"
+          style={{ background: DARK.card, borderBottom: `1px solid ${DARK.cardBorder}` }}>
+          <button className="rounded-lg p-2 lg:hidden" style={{ color: DARK.textMuted }}
+            onClick={() => setSidebarOpen(true)}>
+            <MenuIcon size={20} />
           </button>
 
           <div className="hidden lg:block">
-            <h1 className="font-display text-xl text-card-foreground">
+            <h1 className="text-lg font-bold font-pos-display" style={{ color: DARK.text }}>
               {NAV_ITEMS.find((i) => i.path === location.pathname)?.label || "Panel"}
             </h1>
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Kitchen mode toggle */}
-            <button
-              onClick={() => setKitchenMode((v) => !v)}
-              className={cn(
-                "flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors",
-                kitchenMode
-                  ? "bg-primary/20 text-primary"
-                  : "bg-muted text-muted-foreground hover:bg-muted/80"
-              )}
-            >
+            {/* Kitchen mode */}
+            <button onClick={() => setKitchenMode((v) => !v)}
+              className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-150"
+              style={{
+                background: kitchenMode ? DARK.accentBg : DARK.surface || DARK.cardBorder,
+                color: kitchenMode ? DARK.accent : DARK.textDim,
+                border: `1px solid ${kitchenMode ? DARK.accent + "30" : DARK.cardBorder}`,
+              }}>
               {kitchenMode ? <Moon size={14} /> : <Sun size={14} />}
-              Modo cocina 🌙
+              Modo cocina
             </button>
 
-            {/* Live indicator */}
+            {/* Live */}
             {hasActiveOrders && (
-              <div className="flex items-center gap-2 rounded-full bg-success/10 px-3 py-1.5">
-                <span className="relative flex h-2.5 w-2.5">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
-                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-success" />
+              <div className="flex items-center gap-2 rounded-lg px-3 py-1.5"
+                style={{ background: "#10B98112", border: "1px solid #10B98120" }}>
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style={{ background: "#10B981" }} />
+                  <span className="relative inline-flex h-2 w-2 rounded-full" style={{ background: "#10B981" }} />
                 </span>
-                <span className="text-xs font-semibold text-success">En vivo</span>
+                <span className="text-xs font-semibold" style={{ color: "#34D399" }}>En vivo</span>
               </div>
             )}
 
             {/* Clock */}
-            <span className="font-mono text-sm font-medium text-muted-foreground">
-              {time.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+            <span className="font-pos text-sm font-medium tabular-nums" style={{ color: DARK.textMuted }}>
+              {time.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true }).toUpperCase()}
             </span>
           </div>
         </header>

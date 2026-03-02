@@ -17,6 +17,8 @@ export default {
         display: ["var(--font-display)", "sans-serif"],
         body: ["var(--font-body)", "sans-serif"],
         client: ["var(--font-client)", "sans-serif"],
+        pos: ["var(--font-pos)", "sans-serif"],
+        "pos-display": ["var(--font-pos-display)", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
