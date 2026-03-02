@@ -16,6 +16,7 @@ export default {
       fontFamily: {
         display: ["var(--font-display)", "sans-serif"],
         body: ["var(--font-body)", "sans-serif"],
+        client: ["var(--font-client)", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -88,12 +89,18 @@ export default {
           from: { opacity: "0" },
           to: { opacity: "1" },
         },
+        "pop": {
+          "0%": { transform: "scale(1)" },
+          "50%": { transform: "scale(1.25)" },
+          "100%": { transform: "scale(1)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "slide-up": "slide-up 0.3s ease-out",
         "fade-in": "fade-in 0.3s ease-out",
+        "pop": "pop 0.3s ease-out",
       },
     },
   },

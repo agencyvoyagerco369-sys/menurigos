@@ -11,7 +11,9 @@ import {
   Home,
   LogOut,
   Menu as MenuIcon,
+  Moon,
   Settings,
+  Sun,
   TrendingUp,
   X,
 } from "lucide-react";
@@ -33,6 +35,9 @@ const AdminLayout = () => {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [time, setTime] = useState(new Date());
+  const [kitchenMode, setKitchenMode] = useState(() => {
+    try { return localStorage.getItem("rigos-kitchen-mode") === "true"; } catch { return false; }
+  });
 
   const hasActiveOrders = orders.some((o) => o.status !== "entregado");
 
@@ -46,6 +51,22 @@ const AdminLayout = () => {
     const interval = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // Kitchen mode persistence & CSS
+  useEffect(() => {
+    localStorage.setItem("rigos-kitchen-mode", String(kitchenMode));
+    if (kitchenMode) {
+      document.documentElement.style.filter = "brightness(0.7) saturate(0.8)";
+      document.documentElement.style.background = "#000";
+    } else {
+      document.documentElement.style.filter = "";
+      document.documentElement.style.background = "";
+    }
+    return () => {
+      document.documentElement.style.filter = "";
+      document.documentElement.style.background = "";
+    };
+  }, [kitchenMode]);
 
   if (loading) {
     return (
@@ -150,7 +171,21 @@ const AdminLayout = () => {
             </h1>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            {/* Kitchen mode toggle */}
+            <button
+              onClick={() => setKitchenMode((v) => !v)}
+              className={cn(
+                "flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors",
+                kitchenMode
+                  ? "bg-primary/20 text-primary"
+                  : "bg-muted text-muted-foreground hover:bg-muted/80"
+              )}
+            >
+              {kitchenMode ? <Moon size={14} /> : <Sun size={14} />}
+              Modo cocina 🌙
+            </button>
+
             {/* Live indicator */}
             {hasActiveOrders && (
               <div className="flex items-center gap-2 rounded-full bg-success/10 px-3 py-1.5">

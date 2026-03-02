@@ -7,6 +7,7 @@ import { CartProvider } from "@/context/CartContext";
 import { OrdersProvider } from "@/context/OrdersContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { ProductsProvider } from "@/context/ProductsContext";
+import OfflineBanner from "@/components/OfflineBanner";
 import Index from "./pages/Index";
 import Menu from "./pages/Menu";
 import MesaLanding from "./pages/MesaLanding";
@@ -32,6 +33,7 @@ const App = () => (
         <OrdersProvider>
           <ProductsProvider>
             <CartProvider>
+              <OfflineBanner />
               <Toaster />
               <Sonner />
               <BrowserRouter>
