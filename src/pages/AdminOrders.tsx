@@ -13,12 +13,23 @@ import {
   TrendingUp,
   Zap,
   Receipt,
+  Phone,
+  User,
+  Navigation,
+  MessageSquare,
+  Home,
+  Building2,
+  Timer,
+  ArrowRight,
+  Utensils,
+  Package,
 } from "lucide-react";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 
-type Filter = "todos" | "mesa" | "domicilio";
+type ViewMode = "todo" | "mesas" | "domicilio";
 
-// Elapsed timer hook
+// ── Elapsed timer hook ──
 const useElapsed = (date: Date) => {
   const [elapsed, setElapsed] = useState(() => Math.floor((Date.now() - date.getTime()) / 1000));
   useEffect(() => {
@@ -36,28 +47,37 @@ const formatElapsed = (secs: number) => {
   return `${m}:${s.toString().padStart(2, "0")}`;
 };
 
-// Elapsed badge component
+// ── Elapsed badge ──
 const ElapsedBadge = ({ createdAt }: { createdAt: Date }) => {
   const elapsed = useElapsed(createdAt);
   const minutes = Math.floor(elapsed / 60);
   const isUrgent = minutes >= 20;
+  const isWarning = minutes >= 10 && minutes < 20;
 
   return (
     <span
       className={cn(
-        "flex items-center gap-1 rounded-md px-2 py-0.5 font-mono text-xs font-bold tabular-nums",
-        isUrgent
-          ? "bg-destructive/15 text-destructive animate-pulse"
-          : "bg-muted text-muted-foreground"
+        "flex items-center gap-1 rounded-lg px-2 py-1 font-mono text-xs font-bold tabular-nums",
+        isUrgent && "bg-destructive/20 text-destructive animate-pulse",
+        isWarning && "bg-accent/20 text-accent",
+        !isUrgent && !isWarning && "bg-muted text-muted-foreground"
       )}
     >
-      <Clock size={12} />
+      <Timer size={11} />
       {formatElapsed(elapsed)}
     </span>
   );
 };
 
-// Payment confirmation dialog
+// ── Status config ──
+const STATUS_CONFIG: Record<OrderStatus, { label: string; emoji: string; color: string; bg: string }> = {
+  recibido: { label: "Recibido", emoji: "🔔", color: "text-accent", bg: "bg-accent/15" },
+  preparando: { label: "Preparando", emoji: "🍳", color: "text-primary", bg: "bg-primary/15" },
+  listo: { label: "Listo", emoji: "✅", color: "text-success", bg: "bg-success/15" },
+  entregado: { label: "Entregado", emoji: "🏁", color: "text-muted-foreground", bg: "bg-muted" },
+};
+
+// ── Payment dialog ──
 const PaymentDialog = ({
   order,
   onConfirm,
@@ -67,90 +87,393 @@ const PaymentDialog = ({
   onConfirm: (method: "efectivo" | "transferencia") => void;
   onClose: () => void;
 }) => (
-  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/70 backdrop-blur-sm">
-    <div className="relative mx-4 w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-[0_8px_40px_rgba(0,0,0,0.5)]">
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-md"
+  >
+    <motion.div
+      initial={{ scale: 0.9, y: 20 }}
+      animate={{ scale: 1, y: 0 }}
+      exit={{ scale: 0.9, y: 20 }}
+      className="relative mx-4 w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-[0_8px_40px_rgba(0,0,0,0.5)]"
+    >
       <button onClick={onClose} className="absolute right-4 top-4 text-muted-foreground hover:text-foreground">
         <X size={20} />
       </button>
-      <h3 className="mb-1 font-display text-2xl text-card-foreground">Entregar y Cobrar</h3>
-      <p className="mb-1 text-xs text-muted-foreground">{order.id}</p>
-      <p className="mb-5 text-2xl font-bold text-primary">${order.total}</p>
-      <p className="mb-3 text-sm text-muted-foreground">¿Cómo pagó el cliente?</p>
+      <div className="mb-5 text-center">
+        <span className="text-4xl">💰</span>
+        <h3 className="mt-2 font-display text-2xl text-card-foreground">Entregar y Cobrar</h3>
+        <p className="mt-1 text-xs text-muted-foreground">{order.id}</p>
+        <p className="mt-2 text-3xl font-bold text-primary">${order.total}</p>
+      </div>
+      <p className="mb-3 text-center text-sm text-muted-foreground">¿Cómo pagó el cliente?</p>
       <div className="grid grid-cols-2 gap-3">
         <button
           onClick={() => onConfirm("efectivo")}
-          className="flex flex-col items-center gap-2 rounded-xl border-2 border-border bg-muted/50 py-5 text-foreground transition-all hover:border-success hover:bg-success/10"
+          className="flex flex-col items-center gap-2 rounded-xl border-2 border-border bg-muted/50 py-5 text-foreground transition-all hover:border-success hover:bg-success/10 hover:scale-[1.02] active:scale-95"
         >
           <Banknote size={28} className="text-success" />
           <span className="text-sm font-bold">Efectivo 💵</span>
         </button>
         <button
           onClick={() => onConfirm("transferencia")}
-          className="flex flex-col items-center gap-2 rounded-xl border-2 border-border bg-muted/50 py-5 text-foreground transition-all hover:border-primary hover:bg-primary/10"
+          className="flex flex-col items-center gap-2 rounded-xl border-2 border-border bg-muted/50 py-5 text-foreground transition-all hover:border-primary hover:bg-primary/10 hover:scale-[1.02] active:scale-95"
         >
           <CreditCard size={28} className="text-primary" />
           <span className="text-sm font-bold">Transferencia 🏦</span>
         </button>
       </div>
-    </div>
-  </div>
+    </motion.div>
+  </motion.div>
 );
 
-// Stat card
-const StatCard = ({
-  label,
-  value,
-  icon: Icon,
-  color,
-}: {
-  label: string;
-  value: string | number;
-  icon: React.ElementType;
-  color: string;
-}) => (
-  <div className="rounded-2xl border border-border bg-card p-4 shadow-card">
-    <div className="mb-1 flex items-center gap-2">
+// ── Stat pill ──
+const StatPill = ({ label, value, icon: Icon, color }: { label: string; value: string | number; icon: React.ElementType; color: string }) => (
+  <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 shadow-card">
+    <div className={cn("flex h-9 w-9 items-center justify-center rounded-lg", color.replace("text-", "bg-") + "/15")}>
       <Icon size={18} className={color} />
-      <span className="text-xs text-muted-foreground">{label}</span>
     </div>
-    <p className={cn("font-display text-3xl", color)}>{value}</p>
+    <div>
+      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className={cn("font-display text-xl leading-tight", color)}>{value}</p>
+    </div>
   </div>
 );
 
+// ── Order card (mesa) ──
+const MesaOrderCard = ({ order, onAction }: { order: Order; onAction: (id: string, status: OrderStatus) => void }) => {
+  const isDelivered = order.status === "entregado";
+  const cfg = STATUS_CONFIG[order.status];
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      className={cn(
+        "group flex flex-col rounded-2xl border transition-all",
+        isDelivered ? "border-border/40 opacity-50" : "border-border hover:border-primary/30 hover:shadow-brand/10"
+      )}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between rounded-t-2xl bg-secondary px-4 py-2.5">
+        <div className="flex items-center gap-2">
+          <Utensils size={14} className="text-secondary-foreground/70" />
+          <span className="text-sm font-bold text-secondary-foreground">Mesa {order.tableNumber}</span>
+        </div>
+        <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider", cfg.bg, cfg.color)}>
+          {cfg.emoji} {cfg.label}
+        </span>
+      </div>
+
+      {/* Body */}
+      <div className="flex flex-1 flex-col bg-card p-3.5">
+        {/* Meta */}
+        <div className="mb-2.5 flex items-center justify-between">
+          <div>
+            <p className="font-mono text-[10px] text-muted-foreground/70">{order.id}</p>
+            <p className="text-xs text-muted-foreground">
+              {order.createdAt.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })}
+            </p>
+          </div>
+          {!isDelivered && <ElapsedBadge createdAt={order.createdAt} />}
+        </div>
+
+        {/* Items */}
+        <div className="mb-3 flex-1 space-y-1.5">
+          {order.items.map((item) => (
+            <div key={item.id} className="text-sm">
+              <div className="flex justify-between">
+                <span className="font-semibold text-foreground">{item.quantity}x {item.product.name}</span>
+                <span className="tabular-nums text-muted-foreground">${item.unitPrice * item.quantity}</span>
+              </div>
+              {item.extras.length > 0 && (
+                <p className="ml-4 text-[11px] text-muted-foreground">+ {item.extras.map((e) => e.name).join(", ")}</p>
+              )}
+              {item.notes && (
+                <p className="ml-4 text-[11px] italic text-accent">📝 {item.notes}</p>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Total */}
+        <div className="mb-3 border-t border-border/50 pt-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">Total</span>
+            <span className="font-display text-2xl text-primary">${order.total}</span>
+          </div>
+        </div>
+
+        {/* Actions */}
+        {!isDelivered && <OrderActions order={order} onAction={onAction} />}
+      </div>
+    </motion.div>
+  );
+};
+
+// ── Order card (domicilio) ──
+const DeliveryOrderCard = ({ order, onAction }: { order: Order; onAction: (id: string, status: OrderStatus) => void }) => {
+  const isDelivered = order.status === "entregado";
+  const cfg = STATUS_CONFIG[order.status];
+  const dd = order.deliveryDetails;
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      className={cn(
+        "group flex flex-col rounded-2xl border transition-all",
+        isDelivered ? "border-border/40 opacity-50" : "border-border hover:border-accent/30"
+      )}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between rounded-t-2xl bg-gradient-to-r from-primary/90 to-accent/70 px-4 py-2.5">
+        <div className="flex items-center gap-2">
+          <Truck size={14} className="text-primary-foreground" />
+          <span className="text-sm font-bold text-primary-foreground">Domicilio</span>
+        </div>
+        <span className={cn("rounded-full bg-background/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-foreground")}>
+          {cfg.emoji} {cfg.label}
+        </span>
+      </div>
+
+      {/* Body */}
+      <div className="flex flex-1 flex-col bg-card p-3.5">
+        {/* Meta */}
+        <div className="mb-2.5 flex items-center justify-between">
+          <div>
+            <p className="font-mono text-[10px] text-muted-foreground/70">{order.id}</p>
+            <p className="text-xs text-muted-foreground">
+              {order.createdAt.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })}
+            </p>
+          </div>
+          {!isDelivered && <ElapsedBadge createdAt={order.createdAt} />}
+        </div>
+
+        {/* Customer & delivery info */}
+        <div className="mb-3 space-y-2 rounded-xl border border-border/50 bg-muted/40 p-3">
+          {order.customerName && (
+            <div className="flex items-center gap-2 text-xs">
+              <User size={12} className="shrink-0 text-primary" />
+              <span className="font-semibold text-foreground">{order.customerName}</span>
+            </div>
+          )}
+          {order.customerPhone && (
+            <div className="flex items-center gap-2 text-xs">
+              <Phone size={12} className="shrink-0 text-success" />
+              <a href={`tel:${order.customerPhone}`} className="text-success hover:underline">{order.customerPhone}</a>
+            </div>
+          )}
+          {order.customerAddress && (
+            <div className="flex items-start gap-2 text-xs">
+              <MapPin size={12} className="mt-0.5 shrink-0 text-accent" />
+              <span className="text-foreground">{order.customerAddress}</span>
+            </div>
+          )}
+          {dd && (
+            <>
+              <div className="flex items-center gap-2 text-xs">
+                {dd.type === "casa" ? (
+                  <Home size={12} className="text-muted-foreground" />
+                ) : (
+                  <Building2 size={12} className="text-muted-foreground" />
+                )}
+                <span className="capitalize text-muted-foreground">
+                  {dd.type === "casa" ? "Casa" : `Depto ${dd.aptNumber || ""} · Piso ${dd.floor || ""}`}
+                </span>
+              </div>
+              {dd.references && (
+                <div className="flex items-start gap-2 text-xs">
+                  <Navigation size={12} className="mt-0.5 shrink-0 text-muted-foreground" />
+                  <span className="text-muted-foreground">{dd.references}</span>
+                </div>
+              )}
+              {dd.hasControlledAccess && dd.accessInstructions && (
+                <div className="flex items-start gap-2 text-xs">
+                  <MessageSquare size={12} className="mt-0.5 shrink-0 text-destructive" />
+                  <span className="text-destructive/80">{dd.accessInstructions}</span>
+                </div>
+              )}
+              <div className="flex items-center gap-2 text-xs">
+                {dd.paymentMethod === "efectivo" ? (
+                  <Banknote size={12} className="text-success" />
+                ) : (
+                  <CreditCard size={12} className="text-primary" />
+                )}
+                <span className="font-semibold capitalize text-foreground">{dd.paymentMethod}</span>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Items */}
+        <div className="mb-3 flex-1 space-y-1.5">
+          {order.items.map((item) => (
+            <div key={item.id} className="text-sm">
+              <div className="flex justify-between">
+                <span className="font-semibold text-foreground">{item.quantity}x {item.product.name}</span>
+                <span className="tabular-nums text-muted-foreground">${item.unitPrice * item.quantity}</span>
+              </div>
+              {item.extras.length > 0 && (
+                <p className="ml-4 text-[11px] text-muted-foreground">+ {item.extras.map((e) => e.name).join(", ")}</p>
+              )}
+              {item.notes && (
+                <p className="ml-4 text-[11px] italic text-accent">📝 {item.notes}</p>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Total */}
+        <div className="mb-3 border-t border-border/50 pt-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">Total</span>
+            <span className="font-display text-2xl text-accent">${order.total}</span>
+          </div>
+        </div>
+
+        {/* WhatsApp quick link for delivery */}
+        {!isDelivered && order.customerPhone && (
+          <a
+            href={`https://wa.me/52${order.customerPhone.replace(/\D/g, "")}?text=${encodeURIComponent(`Hola ${order.customerName || ""}, tu pedido de Rigo's está ${order.status === "listo" ? "listo y en camino 🚗" : "siendo preparado 🍳"}`)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mb-2 flex items-center justify-center gap-2 rounded-xl bg-success/10 py-2 text-xs font-bold text-success transition-colors hover:bg-success/20"
+          >
+            📱 Contactar por WhatsApp
+          </a>
+        )}
+
+        {/* Actions */}
+        {!isDelivered && <OrderActions order={order} onAction={onAction} isDelivery />}
+      </div>
+    </motion.div>
+  );
+};
+
+// ── Action buttons (shared) ──
+const OrderActions = ({
+  order,
+  onAction,
+  isDelivery,
+}: {
+  order: Order;
+  onAction: (id: string, status: OrderStatus) => void;
+  isDelivery?: boolean;
+}) => (
+  <div className="flex gap-2">
+    {order.status === "recibido" && (
+      <>
+        <button
+          onClick={() => onAction(order.id, "preparando")}
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary/90 py-2.5 text-xs font-bold text-primary-foreground transition-all hover:bg-primary active:scale-95"
+        >
+          <ChefHat size={14} /> Preparar
+        </button>
+        <button
+          onClick={() => onAction(order.id, "listo")}
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-success py-2.5 text-xs font-bold text-success-foreground transition-all hover:bg-success/90 active:scale-95"
+        >
+          <CheckCircle size={14} /> Listo
+        </button>
+      </>
+    )}
+    {order.status === "preparando" && (
+      <button
+        onClick={() => onAction(order.id, "listo")}
+        className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-success py-2.5 text-xs font-bold text-success-foreground transition-all hover:bg-success/90 active:scale-95"
+      >
+        <CheckCircle size={14} /> Marcar listo ✓
+      </button>
+    )}
+    {order.status === "listo" && (
+      <button
+        onClick={() => onAction(order.id, "entregado")}
+        className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-secondary py-2.5 text-xs font-bold text-secondary-foreground transition-all hover:bg-secondary/90 active:scale-95"
+      >
+        <Package size={14} /> {isDelivery ? "Entregado 🛵" : "Entregar y cobrar 💰"}
+      </button>
+    )}
+  </div>
+);
+
+// ── Kanban column ──
+const KanbanColumn = ({
+  status,
+  orders,
+  renderCard,
+}: {
+  status: OrderStatus;
+  orders: Order[];
+  renderCard: (o: Order) => React.ReactNode;
+}) => {
+  const cfg = STATUS_CONFIG[status];
+  if (orders.length === 0 && status === "entregado") return null;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <span className={cn("flex h-6 items-center gap-1 rounded-full px-2.5 text-[11px] font-bold uppercase tracking-wider", cfg.bg, cfg.color)}>
+          {cfg.emoji} {cfg.label}
+        </span>
+        {orders.length > 0 && (
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-muted text-[10px] font-bold text-muted-foreground">
+            {orders.length}
+          </span>
+        )}
+      </div>
+      <AnimatePresence>
+        {orders.map((o) => (
+          <div key={o.id}>{renderCard(o)}</div>
+        ))}
+      </AnimatePresence>
+      {orders.length === 0 && (
+        <div className="rounded-xl border border-dashed border-border/50 py-8 text-center text-xs text-muted-foreground/50">
+          Sin pedidos
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ── Empty state ──
+const EmptyState = ({ type }: { type: "mesas" | "domicilio" }) => (
+  <div className="flex flex-col items-center justify-center py-16 text-center">
+    <span className="text-5xl">{type === "mesas" ? "🍽" : "🛵"}</span>
+    <p className="mt-3 text-sm text-muted-foreground">
+      No hay pedidos de {type === "mesas" ? "mesas" : "domicilio"}
+    </p>
+    <p className="text-xs text-muted-foreground/60">Aparecerán aquí en tiempo real</p>
+  </div>
+);
+
+// ══════════════════════════════════════════════════
+// MAIN COMPONENT
+// ══════════════════════════════════════════════════
 const AdminOrders = () => {
   const { orders, updateOrderStatus } = useOrders();
-  const [filter, setFilter] = useState<Filter>("todos");
+  const [viewMode, setViewMode] = useState<ViewMode>("todo");
   const [paymentOrder, setPaymentOrder] = useState<Order | null>(null);
-  const prevOrderCountRef = useRef(orders.length);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // New order alert
-  useEffect(() => {
-    if (orders.length > prevOrderCountRef.current) {
-      // Play sound
-      try {
-        if (!audioRef.current) {
-          audioRef.current = new Audio(
-            "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdGaJjIeAfnN7hIyOiX56dXqChoyMiIF7eHuBhoyMiYJ9eXp/hIuMiYN+enl/g4qLiYN+enl/g4qLiYN+ent/gomLiYR+ent/gomKiIR/e3t/gYiKiIR/e3t/gYiJh4R/fHx/gYeIh4R/fHx/gYeIhoN/fHx/gIaHhoN/fX1/gIaGhYJ/fX1/gIWGhYJ/fX1+f4WFhIJ/fn5+f4SFBIJ/fn5+f4SFBIJ/fn5+f4OEBIJ/fn5+foOEA4F+fn5+foOEA4F+fn5+foODA4F+fn9+foKDA4F+fn9+foKDA4F+fn9+foKDA4F+fn9+foKCA4B+fn9+foKCA4B+fn9+fYGCA4B+fn9+fYGCA4B+fn9+fYGCA4B+fn9+fYGBAn9+fn9+fYGBAn9+fn9+fYGBAn9+fn9+fYGBAn9+fn9+fYCBAn9+fn9+fYCBAn9+fn9+fYCBAn9+fn9+fYCBAn9+fn9+fYCBAn9+fn9+fYCBAn9+fn9+fYCAAn9+fn9+fYCAAn9+fn9+fYCAAn9+fn9+fYCAAn9+fn9+fYCAAX5+fn9+fICAAX5+fn9+fICAAX5+fn9+fICAAX5+fn9+fICAAX5+fn9+fICAAX5+fn9+fICAAX5+fn9+fH+AAX5+fn9+fH+AAX5+fn9+fH+AAX5+fn9+fH+AAX5+fn9+fH+AAX5+fn9+fH9/AX5+fn99fH9/AX5+fn99fH9/AX5+fn99fH9/AX5+fn99fH9/"
-          );
+  // Handle deliver with payment dialog for mesa orders
+  const handleAction = useCallback(
+    (id: string, status: OrderStatus) => {
+      if (status === "entregado") {
+        const order = orders.find((o) => o.id === id);
+        if (order && order.orderType === "mesa") {
+          setPaymentOrder(order);
+          return;
         }
-        audioRef.current.currentTime = 0;
-        audioRef.current.play().catch(() => {});
-      } catch {}
-    }
-    prevOrderCountRef.current = orders.length;
-  }, [orders.length]);
-
-  const handleDeliver = useCallback(
-    (order: Order) => {
-      if (order.orderType === "domicilio" && order.deliveryDetails?.paymentMethod) {
-        // Delivery already has payment method
-        updateOrderStatus(order.id, "entregado");
-        return;
       }
-      setPaymentOrder(order);
+      updateOrderStatus(id, status);
     },
-    [updateOrderStatus]
+    [orders, updateOrderStatus]
   );
 
   const handlePaymentConfirm = useCallback(
@@ -163,238 +486,187 @@ const AdminOrders = () => {
     [paymentOrder, updateOrderStatus]
   );
 
-  // Stats
-  const totalOrders = orders.length;
-  const activeOrders = orders.filter((o) => o.status !== "entregado").length;
+  // Computed data
+  const mesaOrders = useMemo(() => orders.filter((o) => o.orderType === "mesa"), [orders]);
+  const deliveryOrders = useMemo(() => orders.filter((o) => o.orderType === "domicilio"), [orders]);
+
+  const activeMesaCount = mesaOrders.filter((o) => o.status !== "entregado").length;
+  const activeDeliveryCount = deliveryOrders.filter((o) => o.status !== "entregado").length;
+  const totalActive = activeMesaCount + activeDeliveryCount;
   const totalRevenue = orders.reduce((s, o) => s + o.total, 0);
-  const avgTicket = totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0;
+  const avgTicket = orders.length > 0 ? Math.round(totalRevenue / orders.length) : 0;
 
-  // Filter & sort (oldest first)
-  const filtered = orders
-    .filter((o) => {
-      if (filter === "mesa") return o.orderType === "mesa";
-      if (filter === "domicilio") return o.orderType === "domicilio";
-      return true;
-    })
-    .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+  const groupByStatus = (list: Order[]) => ({
+    recibido: list.filter((o) => o.status === "recibido").sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime()),
+    preparando: list.filter((o) => o.status === "preparando").sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime()),
+    listo: list.filter((o) => o.status === "listo").sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime()),
+    entregado: list.filter((o) => o.status === "entregado").sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, 5),
+  });
 
-  const mesaCount = orders.filter((o) => o.orderType === "mesa" && o.status !== "entregado").length;
-  const deliveryCount = orders.filter((o) => o.orderType === "domicilio" && o.status !== "entregado").length;
+  const mesaByStatus = useMemo(() => groupByStatus(mesaOrders), [mesaOrders]);
+  const deliveryByStatus = useMemo(() => groupByStatus(deliveryOrders), [deliveryOrders]);
+
+  const STATUSES_ACTIVE: OrderStatus[] = ["recibido", "preparando", "listo"];
+  const showDelivered = viewMode !== "todo";
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* Stats row */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Pedidos del día" value={totalOrders} icon={ShoppingCart} color="text-primary" />
-        <StatCard label="Activos ahora" value={activeOrders} icon={Zap} color="text-accent" />
-        <StatCard label="Ventas del día" value={`$${totalRevenue}`} icon={TrendingUp} color="text-success" />
-        <StatCard label="Ticket promedio" value={`$${avgTicket}`} icon={Receipt} color="text-primary" />
+        <StatPill label="Pedidos hoy" value={orders.length} icon={ShoppingCart} color="text-primary" />
+        <StatPill label="Activos" value={totalActive} icon={Zap} color="text-accent" />
+        <StatPill label="Ventas" value={`$${totalRevenue.toLocaleString()}`} icon={TrendingUp} color="text-success" />
+        <StatPill label="Ticket promedio" value={`$${avgTicket}`} icon={Receipt} color="text-primary" />
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-2">
+      {/* View toggle */}
+      <div className="flex items-center gap-2">
         {([
-          { key: "todos" as Filter, label: "Todos", count: orders.filter((o) => o.status !== "entregado").length },
-          { key: "mesa" as Filter, label: "🍽 Mesas", count: mesaCount },
-          { key: "domicilio" as Filter, label: "🛵 Domicilio", count: deliveryCount },
-        ]).map((f) => (
+          { key: "todo" as ViewMode, label: "Vista completa", icon: "📋", count: totalActive },
+          { key: "mesas" as ViewMode, label: "Mesas", icon: "🍽", count: activeMesaCount },
+          { key: "domicilio" as ViewMode, label: "Domicilio", icon: "🛵", count: activeDeliveryCount },
+        ]).map((tab) => (
           <button
-            key={f.key}
-            onClick={() => setFilter(f.key)}
+            key={tab.key}
+            onClick={() => setViewMode(tab.key)}
             className={cn(
-              "rounded-full px-4 py-2 text-sm font-semibold transition-colors",
-              filter === f.key
-                ? "bg-primary text-primary-foreground"
-                : "bg-card text-muted-foreground hover:bg-muted"
+              "relative flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold transition-all",
+              viewMode === tab.key
+                ? "bg-primary text-primary-foreground shadow-brand"
+                : "bg-card text-muted-foreground hover:bg-muted hover:text-foreground"
             )}
           >
-            {f.label}
-            {f.count > 0 && (
-              <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
-                {f.count}
+            <span>{tab.icon}</span>
+            <span className="hidden sm:inline">{tab.label}</span>
+            {tab.count > 0 && (
+              <span className={cn(
+                "ml-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-bold",
+                viewMode === tab.key
+                  ? "bg-primary-foreground/20 text-primary-foreground"
+                  : "bg-destructive text-destructive-foreground"
+              )}>
+                {tab.count}
               </span>
             )}
           </button>
         ))}
       </div>
 
-      {/* Orders grid */}
-      {filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-border bg-card py-20 text-center">
-          <ChefHat size={56} className="mb-3 text-muted-foreground/30" />
-          <p className="text-lg text-muted-foreground">No hay pedidos</p>
-          <p className="text-sm text-muted-foreground">
-            Los pedidos aparecerán aquí cuando los clientes ordenen
-          </p>
-        </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-          {filtered.map((order) => {
-            const isMesa = order.orderType === "mesa";
-            const isDomicilio = order.orderType === "domicilio";
-            const isDelivered = order.status === "entregado";
-
-            return (
-              <div
-                key={order.id}
-                className={cn(
-                  "flex flex-col overflow-hidden rounded-2xl border shadow-card transition-all",
-                  isDelivered ? "border-border/50 opacity-60" : "border-border"
-                )}
-              >
-                {/* Header */}
-                <div
-                  className={cn(
-                    "flex items-center justify-between px-4 py-3",
-                    isMesa ? "bg-secondary" : "bg-primary"
-                  )}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">{isMesa ? "🍽" : "🛵"}</span>
-                    <span
-                      className={cn(
-                        "text-sm font-bold",
-                        isMesa ? "text-secondary-foreground" : "text-primary-foreground"
-                      )}
-                    >
-                      {isMesa ? `Mesa ${order.tableNumber}` : "Domicilio"}
-                    </span>
-                  </div>
-                  <span
-                    className={cn(
-                      "rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider",
-                      order.status === "recibido" && "bg-accent/20 text-accent",
-                      order.status === "preparando" && "bg-foreground/10 text-foreground",
-                      order.status === "listo" && "bg-success/20 text-success",
-                      order.status === "entregado" && "bg-muted text-muted-foreground"
-                    )}
-                  >
-                    {order.status}
-                  </span>
-                </div>
-
-                {/* Body */}
-                <div className="flex flex-1 flex-col bg-card p-4">
-                  {/* Meta row */}
-                  <div className="mb-3 flex items-center justify-between">
-                    <div>
-                      <p className="text-[11px] font-medium text-muted-foreground">{order.id}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {order.createdAt.toLocaleTimeString("es-MX", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </p>
-                    </div>
-                    {!isDelivered && <ElapsedBadge createdAt={order.createdAt} />}
-                  </div>
-
-                  {/* Delivery info */}
-                  {isDomicilio && order.customerAddress && (
-                    <div className="mb-3 rounded-lg bg-muted/60 p-2.5 text-xs">
-                      <div className="mb-1 flex items-start gap-1.5">
-                        <MapPin size={12} className="mt-0.5 shrink-0 text-primary" />
-                        <span className="text-foreground">{order.customerAddress}</span>
-                      </div>
-                      {order.deliveryDetails?.paymentMethod && (
-                        <div className="flex items-center gap-1.5">
-                          {order.deliveryDetails.paymentMethod === "efectivo" ? (
-                            <Banknote size={12} className="text-success" />
-                          ) : (
-                            <CreditCard size={12} className="text-primary" />
-                          )}
-                          <span className="capitalize text-muted-foreground">
-                            {order.deliveryDetails.paymentMethod}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Items */}
-                  <div className="mb-3 flex-1 space-y-1">
-                    {order.items.map((item) => (
-                      <div key={item.id} className="text-sm text-foreground">
-                        <div className="flex justify-between">
-                          <span className="font-medium">
-                            {item.quantity}x {item.product.name}
-                          </span>
-                          <span className="text-muted-foreground">
-                            ${item.unitPrice * item.quantity}
-                          </span>
-                        </div>
-                        {item.extras.length > 0 && (
-                          <p className="ml-4 text-xs text-muted-foreground">
-                            + {item.extras.map((e) => e.name).join(", ")}
-                          </p>
-                        )}
-                        {item.notes && (
-                          <p className="ml-4 text-xs italic text-accent">📝 {item.notes}</p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Total */}
-                  <div className="mb-3 border-t border-border pt-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-muted-foreground">Total</span>
-                      <span className="font-display text-2xl text-primary">${order.total}</span>
-                    </div>
-                  </div>
-
-                  {/* Action buttons */}
-                  {!isDelivered && (
-                    <div className="flex gap-2">
-                      {order.status === "recibido" && (
-                        <>
-                          <button
-                            onClick={() => updateOrderStatus(order.id, "preparando")}
-                            className="flex-1 rounded-xl bg-primary py-2.5 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-90"
-                          >
-                            En preparación 🍳
-                          </button>
-                          <button
-                            onClick={() => updateOrderStatus(order.id, "listo")}
-                            className="flex-1 rounded-xl bg-success py-2.5 text-sm font-bold text-success-foreground transition-opacity hover:opacity-90"
-                          >
-                            Listo ✓
-                          </button>
-                        </>
-                      )}
-                      {order.status === "preparando" && (
-                        <button
-                          onClick={() => updateOrderStatus(order.id, "listo")}
-                          className="w-full rounded-xl bg-success py-2.5 text-sm font-bold text-success-foreground transition-opacity hover:opacity-90"
-                        >
-                          Marcar como listo ✓
-                        </button>
-                      )}
-                      {order.status === "listo" && (
-                        <button
-                          onClick={() => handleDeliver(order)}
-                          className="w-full rounded-xl bg-secondary py-2.5 text-sm font-bold text-secondary-foreground transition-opacity hover:opacity-90"
-                        >
-                          Entregar y cobrar 💰
-                        </button>
-                      )}
-                    </div>
-                  )}
+      {/* ═══ SPLIT VIEW (default) ═══ */}
+      {viewMode === "todo" && (
+        <div className="grid gap-5 lg:grid-cols-2">
+          {/* MESAS PANEL */}
+          <section className="rounded-2xl border border-border bg-card/50 p-4">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary text-base">🍽</span>
+                <div>
+                  <h2 className="font-display text-xl text-foreground">Mesas</h2>
+                  <p className="text-[10px] text-muted-foreground">{activeMesaCount} activo{activeMesaCount !== 1 ? "s" : ""}</p>
                 </div>
               </div>
-            );
-          })}
+              <button onClick={() => setViewMode("mesas")} className="text-xs text-primary hover:underline">
+                Ver todo →
+              </button>
+            </div>
+            {activeMesaCount === 0 && mesaOrders.filter(o => o.status === "entregado").length === 0 ? (
+              <EmptyState type="mesas" />
+            ) : (
+              <div className="space-y-4">
+                {STATUSES_ACTIVE.map((s) => (
+                  <KanbanColumn
+                    key={s}
+                    status={s}
+                    orders={mesaByStatus[s]}
+                    renderCard={(o) => <MesaOrderCard order={o} onAction={handleAction} />}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* DOMICILIO PANEL */}
+          <section className="rounded-2xl border border-border bg-card/50 p-4">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary/80 to-accent/60 text-base">🛵</span>
+                <div>
+                  <h2 className="font-display text-xl text-foreground">Domicilio</h2>
+                  <p className="text-[10px] text-muted-foreground">{activeDeliveryCount} activo{activeDeliveryCount !== 1 ? "s" : ""}</p>
+                </div>
+              </div>
+              <button onClick={() => setViewMode("domicilio")} className="text-xs text-primary hover:underline">
+                Ver todo →
+              </button>
+            </div>
+            {activeDeliveryCount === 0 && deliveryOrders.filter(o => o.status === "entregado").length === 0 ? (
+              <EmptyState type="domicilio" />
+            ) : (
+              <div className="space-y-4">
+                {STATUSES_ACTIVE.map((s) => (
+                  <KanbanColumn
+                    key={s}
+                    status={s}
+                    orders={deliveryByStatus[s]}
+                    renderCard={(o) => <DeliveryOrderCard order={o} onAction={handleAction} />}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
+      )}
+
+      {/* ═══ MESAS ONLY VIEW ═══ */}
+      {viewMode === "mesas" && (
+        <div className="space-y-5">
+          {activeMesaCount === 0 && mesaOrders.filter(o => o.status === "entregado").length === 0 ? (
+            <EmptyState type="mesas" />
+          ) : (
+            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+              {[...STATUSES_ACTIVE, "entregado" as OrderStatus].map((s) => (
+                <KanbanColumn
+                  key={s}
+                  status={s}
+                  orders={mesaByStatus[s]}
+                  renderCard={(o) => <MesaOrderCard order={o} onAction={handleAction} />}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ═══ DOMICILIO ONLY VIEW ═══ */}
+      {viewMode === "domicilio" && (
+        <div className="space-y-5">
+          {activeDeliveryCount === 0 && deliveryOrders.filter(o => o.status === "entregado").length === 0 ? (
+            <EmptyState type="domicilio" />
+          ) : (
+            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+              {[...STATUSES_ACTIVE, "entregado" as OrderStatus].map((s) => (
+                <KanbanColumn
+                  key={s}
+                  status={s}
+                  orders={deliveryByStatus[s]}
+                  renderCard={(o) => <DeliveryOrderCard order={o} onAction={handleAction} />}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
 
       {/* Payment dialog */}
-      {paymentOrder && (
-        <PaymentDialog
-          order={paymentOrder}
-          onConfirm={handlePaymentConfirm}
-          onClose={() => setPaymentOrder(null)}
-        />
-      )}
+      <AnimatePresence>
+        {paymentOrder && (
+          <PaymentDialog
+            order={paymentOrder}
+            onConfirm={handlePaymentConfirm}
+            onClose={() => setPaymentOrder(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
