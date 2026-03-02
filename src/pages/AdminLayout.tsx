@@ -1,7 +1,7 @@
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useOrders } from "@/context/OrdersContext";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import {
   BarChart3,
@@ -67,6 +67,56 @@ const AdminLayout = () => {
       document.documentElement.style.background = "";
     };
   }, [kitchenMode]);
+
+  // 🔔 Notification sound when new order arrives
+  const prevOrderCountRef = useRef(orders.length);
+  const audioContextRef = useRef<AudioContext | null>(null);
+
+  const playNotificationSound = useCallback(() => {
+    try {
+      if (!audioContextRef.current) {
+        audioContextRef.current = new AudioContext();
+      }
+      const ctx = audioContextRef.current;
+      const now = ctx.currentTime;
+
+      // Two ascending tones: "ding-ding"
+      [0, 0.15].forEach((delay, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = "sine";
+        osc.frequency.value = i === 0 ? 830 : 1100;
+        gain.gain.setValueAtTime(0.3, now + delay);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.4);
+        osc.start(now + delay);
+        osc.stop(now + delay + 0.4);
+      });
+
+      // Browser notification too
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification("🛎 Nuevo pedido en Rigo's", { body: "Tienes un nuevo pedido por atender." });
+      }
+    } catch (e) {
+      console.warn("Could not play notification sound:", e);
+    }
+  }, []);
+
+  // Request notification permission on mount
+  useEffect(() => {
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  // Detect new orders and play sound
+  useEffect(() => {
+    if (orders.length > prevOrderCountRef.current) {
+      playNotificationSound();
+    }
+    prevOrderCountRef.current = orders.length;
+  }, [orders.length, playNotificationSound]);
 
   if (loading) {
     return (
