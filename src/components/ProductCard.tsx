@@ -36,26 +36,38 @@ const ProductCard = ({ product, onSelect }: ProductCardProps) => {
         !isAvailable && "pointer-events-none opacity-40"
       )}
     >
-      {/* Placeholder image */}
-      <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-secondary">
-        <span className="text-2xl">{categoryEmoji[product.category] || "🍽️"}</span>
-      </div>
-
-      {/* Info */}
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-bold text-card-foreground">{product.name}</p>
-        {isAvailable ? (
-          <p className="text-lg font-extrabold text-destructive">${product.price}</p>
+      {/* Placeholder image (Emoji or Real Image later) */}
+      <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-secondary overflow-hidden">
+        {product.image ? (
+          <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
         ) : (
-          <p className="text-xs font-semibold text-muted-foreground">No disponible</p>
+          <span className="text-3xl">{categoryEmoji[product.category] || "🍽️"}</span>
         )}
       </div>
 
-      {/* Add button */}
+      {/* Info */}
+      <div className="min-w-0 flex-1 py-1 flex flex-col justify-between">
+        <div>
+          <p className="truncate text-base font-bold text-foreground">{product.name}</p>
+          {/* Si hubiera descripción se pone aquí */}
+          {product.description && (
+            <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5 leading-snug">{product.description}</p>
+          )}
+        </div>
+        <div className="mt-2 flex items-center justify-between">
+          {isAvailable ? (
+            <p className="text-lg font-bold text-foreground">${product.price}</p>
+          ) : (
+            <p className="text-sm font-semibold text-muted-foreground">Agotado</p>
+          )}
+        </div>
+      </div>
+
+      {/* Add button - absolute for tight layouts or flex for standard */}
       {isAvailable && (
         <div
           className={cn(
-            "flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-success text-success-foreground transition-transform",
+            "self-end flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition-transform",
             popping && "animate-pop"
           )}
         >

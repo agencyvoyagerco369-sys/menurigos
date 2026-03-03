@@ -129,10 +129,10 @@ const OrderItemsList = ({ items }: { items: Order["items"] }) => (
   <div className="space-y-1.5">
     {items.map((item) => (
       <div key={item.id} className="flex items-start justify-between gap-3 rounded-lg px-3 py-2.5"
-        style={{ background: "rgba(255,255,255,0.03)", borderBottom: `1px solid ${P.border}` }}>
+        style={{ background: "rgba(0,0,0,0.03)", borderBottom: `1px solid ${P.border}` }}>
         <div className="flex items-start gap-3">
           <span className="mt-0.5 flex h-7 min-w-7 items-center justify-center rounded-md text-sm font-extrabold font-pos"
-            style={{ background: "rgba(255,255,255,0.08)", color: P.text }}>
+            style={{ background: "rgba(0,0,0,0.05)", color: P.text }}>
             {item.quantity}
           </span>
           <div>
@@ -171,7 +171,7 @@ const ActionButtons = ({ order, onAction, isDelivery }: { order: Order; onAction
       {order.status === "recibido" && (
         <>
           <button onClick={() => onAction(order.id, "preparando")}
-            className={cn(btnBase, "hover:brightness-110")} style={{ background: "rgba(255,255,255,0.08)", color: P.textMuted, border: `1px solid ${P.border}` }}>
+            className={cn(btnBase, "hover:brightness-95")} style={{ background: "rgba(0,0,0,0.05)", color: P.textMuted, border: `1px solid ${P.border}` }}>
             ↩ Pausar
           </button>
           <button onClick={() => onAction(order.id, "listo")}
@@ -207,7 +207,7 @@ const PaymentDialog = ({ order, onConfirm, onClose }: {
       style={{ background: P.card, border: `1px solid ${P.border}`, boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5)" }} onClick={e => e.stopPropagation()}>
       <button onClick={onClose} className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-lg transition-colors"
         style={{ color: P.textMuted }}
-        onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}
+        onMouseEnter={(e) => e.currentTarget.style.background = "rgba(0,0,0,0.05)"}
         onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
         <X size={18} strokeWidth={2} />
       </button>
@@ -298,7 +298,7 @@ const OrderCard = ({ order, onAction, isDelivery }: { order: Order; onAction: (i
                 ORDEN
               </span>
               <span className="inline-flex items-center gap-1 rounded px-2 py-0.5 font-pos-mono text-[11px] font-semibold"
-                style={{ background: "rgba(255,255,255,0.06)", color: P.textMuted }}>
+                style={{ background: "rgba(0,0,0,0.05)", color: P.textMuted }}>
                 #{order.id.slice(0, 8).toUpperCase()}
               </span>
             </div>
@@ -322,7 +322,7 @@ const OrderCard = ({ order, onAction, isDelivery }: { order: Order; onAction: (i
       <div className="space-y-3 p-4" style={{ lineHeight: 1.6 }}>
         {/* Delivery info */}
         {isDelivery && (
-          <div className="space-y-1.5 rounded-lg p-3" style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${P.border}` }}>
+          <div className="space-y-1.5 rounded-lg p-3" style={{ background: "rgba(0,0,0,0.02)", border: `1px solid ${P.border}` }}>
             {order.customerName && (
               <div className="flex items-center gap-2 text-xs font-pos">
                 <User size={13} strokeWidth={2} style={{ color: "#A78BFA" }} />
@@ -435,7 +435,7 @@ const KanbanCol = ({ status, orders, renderCard }: {
 const EmptyPanel = ({ type }: { type: "mesas" | "domicilio" }) => (
   <div className="flex flex-col items-center justify-center py-20 text-center font-pos">
     <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-xl"
-      style={{ background: "rgba(255,255,255,0.05)" }}>
+      style={{ background: "rgba(0,0,0,0.04)" }}>
       {type === "mesas"
         ? <UtensilsCrossed size={36} strokeWidth={2} style={{ color: P.textDim }} />
         : <Truck size={36} strokeWidth={2} style={{ color: P.textDim }} />
@@ -513,7 +513,7 @@ const AdminOrders = () => {
               <button key={tab.key} onClick={() => setViewMode(tab.key)}
                 className="relative flex items-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold font-pos transition-all duration-150"
                 style={{
-                  background: active ? "rgba(255,255,255,0.06)" : "transparent",
+                  background: active ? "rgba(0,0,0,0.05)" : "transparent",
                   color: active ? P.text : P.textDim,
                   border: active ? `1px solid ${P.border}` : "1px solid transparent",
                 }}>

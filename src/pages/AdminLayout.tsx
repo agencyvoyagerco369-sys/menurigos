@@ -135,12 +135,12 @@ const AdminLayout = () => {
                 onClick={() => { navigate(item.path); setSidebarOpen(false); }}
                 className="relative flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all duration-150"
                 style={{
-                  background: active ? "rgba(212,43,43,0.15)" : "transparent",
-                  color: active ? "#FFFFFF" : D.textMuted,
+                  background: active ? "rgba(234,88,12,0.15)" : "transparent",
+                  color: active ? D.brand : D.textMuted,
                   borderLeft: active ? `3px solid ${D.brand}` : "3px solid transparent",
                 }}
-                onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = "rgba(255,255,255,0.05)"; }}
-                onMouseLeave={(e) => { if (!active) e.currentTarget.style.background = "transparent"; }}>
+                onMouseEnter={(e) => { if (!active) { e.currentTarget.style.background = "#F3F4F6"; e.currentTarget.style.color = D.text; } }}
+                onMouseLeave={(e) => { if (!active) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = D.textMuted; } }}>
                 <item.icon size={18} strokeWidth={2} />
                 <span>{item.label}</span>
                 {item.path === "/admin/pedidos" && activeCount > 0 && (
@@ -160,7 +160,7 @@ const AdminLayout = () => {
             onClick={handleSignOut}
             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors duration-150"
             style={{ color: D.textMuted }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = "#F87171"; e.currentTarget.style.background = "rgba(239,68,68,0.1)"; }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = "#DC2626"; e.currentTarget.style.background = "rgba(239,68,68,0.1)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.color = D.textMuted; e.currentTarget.style.background = "transparent"; }}>
             <LogOut size={18} strokeWidth={2} />
             Cerrar sesión

@@ -63,41 +63,45 @@ const ProductDetail = ({ product, onClose }: ProductDetailProps) => {
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 28, stiffness: 300 }}
-            className="fixed inset-x-0 bottom-0 z-50 max-h-[90vh] overflow-auto rounded-t-3xl bg-card shadow-[0_-8px_40px_rgba(0,0,0,0.4)]"
+            className="fixed inset-x-0 bottom-0 z-50 max-h-[90vh] overflow-auto rounded-t-3xl bg-background shadow-[0_-8px_40px_rgba(0,0,0,0.4)]"
           >
             {/* Handle */}
-            <div className="sticky top-0 z-10 flex justify-center bg-card pb-0 pt-3">
-              <div className="h-1 w-10 rounded-full bg-muted-foreground/30" />
+            <div className="sticky top-0 z-10 flex justify-center bg-background pb-0 pt-3">
+              <div className="h-1.5 w-12 rounded-full bg-border" />
             </div>
 
             <div className="px-5 pb-8 pt-4">
               {/* Close */}
               <button
                 onClick={onClose}
-                className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground"
+                className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-foreground hover:bg-muted transition-colors"
               >
                 <X size={18} />
               </button>
 
               {/* Product image placeholder */}
-              <div className="mx-auto mb-4 flex h-32 w-32 items-center justify-center rounded-2xl bg-secondary">
-                <span className="text-6xl">
-                  {product.category === "dogos" ? "🌭" : product.category === "botanas" ? "🍟" : product.category === "bebidas" ? "🥤" : product.category === "chiles" ? "🌶️" : "➕"}
-                </span>
+              <div className="mx-auto mb-6 flex h-40 w-40 items-center justify-center rounded-[2rem] bg-secondary shadow-sm overflow-hidden">
+                {product.imageUrl ? (
+                  <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-6xl">
+                    {product.category === "dogos" ? "🌭" : product.category === "botanas" ? "🍟" : product.category === "bebidas" ? "🥤" : product.category === "chiles" ? "🌶️" : "➕"}
+                  </span>
+                )}
               </div>
 
               {/* Name & price */}
-              <h2 className="mb-1 text-center font-display text-3xl text-card-foreground">
+              <h2 className="mb-2 text-center font-display text-4xl text-foreground">
                 {product.name}
               </h2>
-              <p className="mb-6 text-center text-xl font-bold text-destructive">
+              <p className="mb-6 text-center text-2xl font-bold text-foreground">
                 ${product.price}
               </p>
 
               {/* Extras */}
               {product.category !== "extras" && (
-                <div className="mb-5">
-                  <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                <div className="mb-6">
+                  <h3 className="mb-3 text-[13px] font-bold uppercase tracking-wider text-muted-foreground">
                     Agregar extras
                   </h3>
                   <div className="space-y-2">
@@ -108,19 +112,19 @@ const ProductDetail = ({ product, onClose }: ProductDetailProps) => {
                           key={extra.id}
                           onClick={() => toggleExtra(extra)}
                           className={cn(
-                            "flex w-full items-center justify-between rounded-xl border px-4 py-3 transition-all",
+                            "flex w-full items-center justify-between rounded-[1rem] border-2 px-4 py-3 transition-all",
                             isSelected
-                              ? "border-success bg-success/10"
-                              : "border-border bg-muted/50"
+                              ? "border-primary bg-primary/5"
+                              : "border-transparent bg-secondary"
                           )}
                         >
                           <div className="flex items-center gap-3">
                             <div
                               className={cn(
-                                "flex h-5 w-5 items-center justify-center rounded border-2 transition-colors",
+                                "flex h-5 w-5 items-center justify-center rounded bg-background border-2 transition-colors",
                                 isSelected
-                                  ? "border-success bg-success"
-                                  : "border-muted-foreground/40"
+                                  ? "border-primary bg-primary"
+                                  : "border-border"
                               )}
                             >
                               {isSelected && (
@@ -129,9 +133,9 @@ const ProductDetail = ({ product, onClose }: ProductDetailProps) => {
                                 </svg>
                               )}
                             </div>
-                            <span className="text-sm font-medium text-foreground">{extra.name}</span>
+                            <span className="text-[15px] font-medium text-foreground">{extra.name}</span>
                           </div>
-                          <span className="text-sm font-semibold text-primary">+${extra.price}</span>
+                          <span className="text-[15px] font-semibold text-foreground">+${extra.price}</span>
                         </button>
                       );
                     })}
@@ -141,32 +145,32 @@ const ProductDetail = ({ product, onClose }: ProductDetailProps) => {
 
               {/* Notes */}
               <div className="mb-6">
-                <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                <h3 className="mb-2 text-[13px] font-bold uppercase tracking-wider text-muted-foreground">
                   Notas especiales
                 </h3>
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Ej: sin chile, extra queso..."
+                  placeholder="Ej: sin chile, extra cebolla..."
                   rows={2}
-                  className="w-full resize-none rounded-xl border border-border bg-muted/50 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+                  className="w-full resize-none rounded-2xl border-2 border-transparent bg-secondary px-4 py-3 text-[15px] text-foreground placeholder:text-muted-foreground focus:border-primary/30 focus:bg-background focus:outline-none transition-colors"
                 />
               </div>
 
               {/* Quantity */}
-              <div className="mb-6 flex items-center justify-center gap-5">
+              <div className="mb-8 flex items-center justify-center gap-6">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-muted text-foreground transition-colors hover:bg-muted/80"
+                  className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary text-foreground transition-transform active:scale-95"
                 >
-                  <Minus size={18} />
+                  <Minus size={20} />
                 </button>
-                <span className="w-8 text-center text-2xl font-bold text-foreground">{quantity}</span>
+                <span className="w-8 text-center text-3xl font-bold text-foreground">{quantity}</span>
                 <button
                   onClick={() => setQuantity(quantity + 1)}
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-muted text-foreground transition-colors hover:bg-muted/80"
+                  className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary text-foreground transition-transform active:scale-95"
                 >
-                  <Plus size={18} />
+                  <Plus size={20} />
                 </button>
               </div>
 
@@ -174,7 +178,7 @@ const ProductDetail = ({ product, onClose }: ProductDetailProps) => {
               <motion.button
                 whileTap={{ scale: 0.97 }}
                 onClick={handleAdd}
-                className="w-full rounded-2xl bg-success py-4 text-center text-lg font-bold text-success-foreground shadow-[0_4px_20px_-4px_hsl(123_46%_34%_/_0.5)]"
+                className="w-full rounded-full bg-primary py-4 text-center text-[17px] font-bold text-primary-foreground shadow-brand"
               >
                 Agregar al carrito — ${totalPrice}
               </motion.button>

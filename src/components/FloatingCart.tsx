@@ -46,10 +46,10 @@ const FloatingCart = () => {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
             onClick={() => setOpen(true)}
-            className="fixed bottom-6 right-5 z-40 flex h-16 w-16 items-center justify-center rounded-full bg-success shadow-[0_4px_24px_-4px_hsl(123_46%_34%_/_0.6)]"
+            className="fixed bottom-6 right-5 z-40 flex h-16 w-16 items-center justify-center rounded-full bg-primary shadow-brand"
           >
-            <ShoppingCart size={26} className="text-success-foreground" />
-            <span className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
+            <ShoppingCart size={26} className="text-primary-foreground" />
+            <span className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-foreground text-xs font-bold text-background border-2 border-background">
               {itemCount}
             </span>
           </motion.button>
@@ -162,7 +162,7 @@ const FloatingCart = () => {
                     <motion.button
                       whileTap={{ scale: 0.97 }}
                       onClick={handleSendOrder}
-                      className="mt-4 w-full rounded-2xl bg-destructive py-4 text-center text-lg font-bold text-destructive-foreground shadow-[0_4px_20px_-4px_hsl(0_76%_45%_/_0.4)]"
+                      className="mt-4 w-full rounded-full bg-primary py-4 text-center text-[17px] font-bold text-primary-foreground shadow-brand"
                     >
                       {isDelivery ? "Continuar al envío 🛵" : "Enviar pedido a cocina 🍳"}
                     </motion.button>

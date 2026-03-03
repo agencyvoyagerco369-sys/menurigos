@@ -32,31 +32,31 @@ const Menu = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24 font-client">
-      {/* Sticky header */}
-      <header className="sticky top-0 z-30 bg-secondary shadow-[0_2px_12px_rgba(0,0,0,0.3)]">
-        <div className="flex items-center justify-between px-4 py-3">
-          <h1 className="font-display text-2xl tracking-wide text-accent">Rigo's</h1>
+      {/* Sticky header - Estilo App Limpio */}
+      <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-md border-b border-border/40 pb-2">
+        <div className="flex items-center justify-between px-4 py-4">
+          <h1 className="font-display text-3xl tracking-wide text-primary">Rigo's</h1>
           {mesa && (
-            <span className="rounded-lg bg-destructive px-3 py-1 text-xs font-bold text-destructive-foreground">
+            <span className="rounded-full bg-secondary px-4 py-1.5 text-xs font-bold text-foreground">
               Mesa {mesa}
             </span>
           )}
         </div>
 
-        {/* Category tabs */}
-        <div className="flex gap-1.5 overflow-x-auto px-4 pb-3 scrollbar-none">
+        {/* Category tabs - Píldoras deslizables */}
+        <div className="flex gap-2 overflow-x-auto px-4 pb-2 hide-scrollbar">
           {categories.map((cat) => (
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
               className={cn(
-                "flex shrink-0 items-center gap-1.5 rounded-full px-5 py-2.5 text-sm font-bold transition-all",
+                "flex shrink-0 items-center gap-1.5 rounded-full px-5 py-2 text-sm font-bold transition-all",
                 activeCategory === cat.id
-                  ? "bg-success text-success-foreground shadow-[0_2px_10px_-2px_hsl(123_46%_34%_/_0.5)]"
-                  : "bg-muted/60 text-muted-foreground"
+                  ? "bg-primary text-primary-foreground shadow-sm scale-100"
+                  : "bg-secondary text-foreground scale-95 hover:bg-secondary/80"
               )}
             >
-              <span>{cat.icon}</span>
+              <span className="text-base">{cat.icon}</span>
               <span>{cat.name}</span>
             </button>
           ))}

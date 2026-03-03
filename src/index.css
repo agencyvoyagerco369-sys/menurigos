@@ -6,47 +6,48 @@
 
 @layer base {
   :root {
-    --background: 190 25% 10%;
-    --foreground: 45 20% 95%;
+    --background: 0 0% 98%; /* Gris extremadamente claro casi blanco */
+    --foreground: 220 10% 15%; /* Texto gris muy oscuro (menos fatiga que el negro puro) */
 
-    --card: 190 30% 14%;
-    --card-foreground: 45 20% 95%;
+    --card: 0 0% 100%; /* Cartas en blanco puro */
+    --card-foreground: 220 10% 15%;
 
-    --popover: 190 30% 12%;
-    --popover-foreground: 45 20% 95%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 10% 15%;
 
-    --primary: 38 91% 55%;
-    --primary-foreground: 190 62% 12%;
+    --primary: 38 96% 51%; /* Naranja intenso CTA */
+    --primary-foreground: 0 0% 100%; /* Texto blanco en botones naranjas */
 
-    --secondary: 190 62% 27%;
-    --secondary-foreground: 45 20% 95%;
+    --secondary: 0 0% 96%; /* Gris neutro suave para fondos secundarios */
+    --secondary-foreground: 220 10% 15%;
 
-    --muted: 190 20% 18%;
-    --muted-foreground: 190 10% 60%;
+    --muted: 220 10% 92%; /* Grises atenuados o dividers */
+    --muted-foreground: 220 10% 45%; /* Texto atenuado/secundario en gris claro */
 
-    --accent: 48 100% 48%;
-    --accent-foreground: 190 62% 12%;
+    --accent: 48 100% 48%; /* El amarillo Mostaza se mantiene para detalles */
+    --accent-foreground: 220 10% 15%;
 
-    --destructive: 0 76% 45%;
-    --destructive-foreground: 45 20% 95%;
+    --destructive: 0 84% 60%; /* Rojo alerta, no tan agresivo */
+    --destructive-foreground: 0 0% 100%;
 
-    --success: 123 46% 34%;
-    --success-foreground: 45 20% 95%;
+    --success: 142 71% 45%; /* Verde para el éxito */
+    --success-foreground: 0 0% 100%;
 
-    --border: 190 20% 22%;
-    --input: 190 20% 22%;
-    --ring: 38 91% 55%;
+    --border: 220 15% 90%; /* Bordes tenues en gris */
+    --input: 220 15% 90%;
+    --ring: 38 96% 51%;
 
-    --radius: 0.75rem;
+    --radius: 1rem; /* Radio más pronunciado (pill-like) general */
 
-    --sidebar-background: 190 30% 12%;
-    --sidebar-foreground: 45 20% 95%;
-    --sidebar-primary: 38 91% 55%;
-    --sidebar-primary-foreground: 190 62% 12%;
-    --sidebar-accent: 190 20% 18%;
-    --sidebar-accent-foreground: 45 20% 95%;
-    --sidebar-border: 190 20% 22%;
-    --sidebar-ring: 38 91% 55%;
+    /* Dashboard Admin (OPCIONALMENTE SE MANTIENE UN POCO MÁS NEUTRO) */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 10% 25%;
+    --sidebar-primary: 38 96% 51%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 10% 96%;
+    --sidebar-accent-foreground: 220 10% 15%;
+    --sidebar-border: 220 15% 90%;
+    --sidebar-ring: 38 96% 51%;
 
     --font-display: 'Bebas Neue', sans-serif;
     --font-body: 'Inter', sans-serif;
@@ -82,26 +83,37 @@
 
   .text-gradient {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(38, 91%, 55%), hsl(48, 100%, 48%));
+    background-image: linear-gradient(135deg, hsl(38, 96%, 51%), hsl(15, 96%, 51%)); /* Naranja a mandarín */
   }
 
+  /* Se reducen los gradientes pesados en favor de fondos claros transparentes o limpios */
   .bg-gradient-brand {
-    background: linear-gradient(135deg, hsl(190, 62%, 27%), hsl(190, 30%, 14%));
+    background: linear-gradient(180deg, hsl(0, 0%, 100%) 0%, hsl(0, 0%, 97%) 100%);
   }
 
   .bg-gradient-warm {
-    background: linear-gradient(135deg, hsl(38, 91%, 55%), hsl(0, 76%, 45%));
+    background: linear-gradient(135deg, hsl(38, 96%, 51%), hsl(22, 96%, 51%));
   }
 
+  /* Sombras "Uber Eats" (grandes y difusas debajo de los Action Buttons y Cards) */
   .shadow-brand {
-    box-shadow: 0 4px 20px -4px hsl(38 91% 55% / 0.3);
+    box-shadow: 0 10px 25px -5px hsl(38 96% 51% / 0.35);
   }
 
   .shadow-card {
-    box-shadow: 0 2px 12px -2px hsl(0 0% 0% / 0.4);
+    box-shadow: 0 4px 18px -4px hsl(0 0% 0% / 0.08); /* Sombra muy sutil para tarjetas en fondo blanco */
   }
 
-  /* Skeleton shimmer */
+  /* Utilidad para ocutar scrollbar (ej. categorías horizontales) */
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Skeleton shimmer reajustado a colores claros */
   @keyframes shimmer {
     0% { background-position: -200% 0; }
     100% { background-position: 200% 0; }
@@ -110,9 +122,9 @@
   .skeleton {
     background: linear-gradient(
       90deg,
-      hsl(190 20% 18%) 25%,
-      hsl(190 20% 24%) 50%,
-      hsl(190 20% 18%) 75%
+      hsl(220 15% 95%) 25%,
+      hsl(0 0% 100%) 50%,
+      hsl(220 15% 95%) 75%
     );
     background-size: 200% 100%;
     animation: shimmer 1.5s ease-in-out infinite;

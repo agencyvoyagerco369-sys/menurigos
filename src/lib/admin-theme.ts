@@ -5,38 +5,38 @@
 
 export const T = {
   // Backgrounds
-  bg: "#151820",
-  card: "#1A1F2E",
-  cardElevated: "#1E2536",
-  surface: "#161B27",
-  input: "#131720",
+  bg: "#F9FAFB", // Gris muy claro casi blanco
+  card: "#FFFFFF",
+  cardElevated: "#F3F4F6",
+  surface: "#FFFFFF",
+  input: "#F9FAFB",
 
   // Borders
-  border: "#252D3D",
-  borderLight: "#2A3348",
+  border: "#E5E7EB",
+  borderLight: "#F3F4F6",
 
-  // Brand
-  brand: "#D42B2B",
+  // Brand (Mantendremos un rojo/naranja pero más limpio para el Admin)
+  brand: "#EA580C", // Naranja rojizo oscuro
 
   // Text
-  text: "#F1F3F8",
-  textSecondary: "#CDD2DE",
-  textMuted: "#8892A6",
-  textDim: "#5C6478",
+  text: "#111827",
+  textSecondary: "#4B5563",
+  textMuted: "#6B7280",
+  textDim: "#9CA3AF",
 
   // Sidebar
-  sidebar: "#0B0D14",
-  sidebarBorder: "#1E2330",
-  topbar: "#111520",
-  topbarBorder: "#1E2330",
+  sidebar: "#FFFFFF",
+  sidebarBorder: "#E5E7EB",
+  topbar: "#FFFFFF",
+  topbarBorder: "#E5E7EB",
 } as const;
 
 /** Status colors for orders — used everywhere: orders, dashboard, cash register */
 export const STATUS = {
-  recibido:   { hex: "#3B82F6", bg: "rgba(59,130,246,0.12)",  text: "#60A5FA", label: "Nuevo",     border: "#3B82F6" },
-  preparando: { hex: "#F59E0B", bg: "rgba(245,158,11,0.12)",  text: "#FBBF24", label: "En cocina", border: "#F59E0B" },
-  listo:      { hex: "#10B981", bg: "rgba(16,185,129,0.12)",  text: "#34D399", label: "Listo",     border: "#10B981" },
-  entregado:  { hex: "#6B7280", bg: "rgba(107,114,128,0.12)", text: "#9CA3AF", label: "Entregado", border: "#6B7280" },
+  recibido: { hex: "#3B82F6", bg: "rgba(59,130,246,0.12)", text: "#60A5FA", label: "Nuevo", border: "#3B82F6" },
+  preparando: { hex: "#F59E0B", bg: "rgba(245,158,11,0.12)", text: "#FBBF24", label: "En cocina", border: "#F59E0B" },
+  listo: { hex: "#10B981", bg: "rgba(16,185,129,0.12)", text: "#34D399", label: "Listo", border: "#10B981" },
+  entregado: { hex: "#6B7280", bg: "rgba(107,114,128,0.12)", text: "#9CA3AF", label: "Entregado", border: "#6B7280" },
 } as const;
 
 /** Accent colors for metrics/stats */
