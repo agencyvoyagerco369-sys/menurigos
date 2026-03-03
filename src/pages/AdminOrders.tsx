@@ -164,31 +164,25 @@ const OrderItemsList = ({ items }: { items: Order["items"] }) => (
 
 /* ═══════════════════ ACTION BUTTONS ═══════════════════ */
 const ActionButtons = ({ order, onAction, isDelivery }: { order: Order; onAction: (id: string, status: OrderStatus) => void; isDelivery?: boolean }) => {
-  const btnBase = "flex flex-1 items-center justify-center gap-2 rounded-lg py-3.5 text-sm font-bold font-pos tracking-wide uppercase transition-all duration-150 active:scale-[0.97]";
+  const btnBase = "flex flex-1 items-center justify-center gap-2 rounded-lg py-3.5 text-sm font-bold font-pos tracking-wide uppercase transition-all duration-150 active:scale-[0.97] shadow-sm";
   return (
     <div className="flex gap-2.5">
       {order.status === "recibido" && (
-        <>
-          <button onClick={() => onAction(order.id, "preparando")}
-            className={cn(btnBase, "hover:brightness-95")} style={{ background: "rgba(0,0,0,0.05)", color: P.textMuted, border: `1px solid ${P.border}` }}>
-            ↩ Pausar
-          </button>
-          <button onClick={() => onAction(order.id, "listo")}
-            className={cn(btnBase, "hover:brightness-110")} style={{ background: "#10B981", color: "#FFFFFF" }}>
-            <CheckCircle2 size={16} strokeWidth={2} /> Marcar Listo
-          </button>
-        </>
+        <button onClick={() => onAction(order.id, "preparando")}
+          className={cn(btnBase, "hover:brightness-110")} style={{ background: P.brand, color: "#FFFFFF" }}>
+          <ChefHat size={18} strokeWidth={2.5} /> Preparar Pedido
+        </button>
       )}
       {order.status === "preparando" && (
         <button onClick={() => onAction(order.id, "listo")}
           className={cn(btnBase, "hover:brightness-110")} style={{ background: "#10B981", color: "#FFFFFF" }}>
-          <CheckCircle2 size={16} strokeWidth={2} /> Marcar Listo
+          <CheckCircle2 size={18} strokeWidth={2.5} /> Marcar Listo
         </button>
       )}
       {order.status === "listo" && (
         <button onClick={() => onAction(order.id, "entregado")}
-          className={cn(btnBase, "hover:brightness-110")} style={{ background: P.brand, color: "#FFFFFF" }}>
-          <Package size={16} strokeWidth={2} /> {isDelivery ? "Marcar Entregado" : "Cobrar y Entregar"}
+          className={cn(btnBase, "hover:brightness-110")} style={{ background: "#3B82F6", color: "#FFFFFF" }}>
+          <Package size={18} strokeWidth={2.5} /> {isDelivery ? "Marcar Entregado" : "Cobrar y Entregar"}
         </button>
       )}
     </div>
