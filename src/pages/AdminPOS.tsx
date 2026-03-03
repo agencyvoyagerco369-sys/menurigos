@@ -1,8 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { products, Product } from "@/data/products";
 import { useOrders } from "@/context/OrdersContext";
 import { T } from "@/lib/admin-theme";
-import { Plus, Minus, X, Info, ShoppingBag, UtensilsCrossed, Trash2 } from "lucide-react";
+import { Plus, Minus, X, ShoppingBag, UtensilsCrossed, Trash2, Search } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +28,7 @@ export default function AdminPOS() {
 
     // State
     const [activeCategory, setActiveCategory] = useState<string>("dogos");
+    const [searchQuery, setSearchQuery] = useState("");
     const [cart, setCart] = useState<POSCartItem[]>([]);
 
     // Modal for adding items
@@ -41,7 +42,14 @@ export default function AdminPOS() {
     const [tableNumber, setTableNumber] = useState<string>("1");
     const [customerName, setCustomerName] = useState("");
 
-    const filteredProducts = products.filter((p) => p.category === activeCategory && p.active && p.category !== "extras");
+    const filteredProducts = products.filter((p) => {
+        if (!p.active || p.category === "extras") return false;
+        if (searchQuery) {
+            return p.name.toLowerCase().includes(searchQuery.toLowerCase());
+        }
+        return p.category === activeCategory;
+    });
+
     const extrasList = products.filter((p) => p.category === "extras" && p.active);
 
     // Cart Totals
@@ -123,133 +131,180 @@ export default function AdminPOS() {
     };
 
     return (
-        <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-gray-50/50 font-pos -m-4 lg:-m-6">
+        <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-gray-100 font-pos -m-4 lg:-m-6">
             {/* Left Area: Menu Grid */}
             <div className="flex-1 flex flex-col min-w-0">
-                <div className="bg-white border-b px-4 py-3 shrink-0" style={{ borderColor: T.border }}>
-                    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                        {CATEGORIES.map((cat) => (
-                            <button
-                                key={cat.id}
-                                onClick={() => setActiveCategory(cat.id)}
-                                className={cn(
-                                    "px-4 py-2 rounded-full whitespace-nowrap text-sm font-bold transition-all",
-                                    activeCategory === cat.id ? "bg-orange-500 text-white shadow-md shadow-orange-500/20" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                                )}
-                            >
-                                {cat.label}
-                            </button>
-                        ))}
+                {/* Header: Categories & Search */}
+                <div className="bg-white border-b px-6 py-4 shrink-0 flex flex-col gap-4 shadow-sm z-10" style={{ borderColor: T.border }}>
+                    <div className="flex items-center gap-4">
+                        <div className="relative flex-1 max-w-xl">
+                            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                            <input
+                                type="text"
+                                placeholder="Buscar producto por nombre..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full bg-gray-50 border border-gray-200 rounded-2xl pl-11 pr-10 py-2.5 text-sm font-medium outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all placeholder:text-gray-400"
+                            />
+                            {searchQuery && (
+                                <button
+                                    onClick={() => setSearchQuery("")}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 bg-gray-200 hover:bg-gray-300 rounded-full p-1 transition-colors"
+                                >
+                                    <X size={14} />
+                                </button>
+                            )}
+                        </div>
                     </div>
+
+                    {!searchQuery && (
+                        <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-hide">
+                            {CATEGORIES.map((cat) => (
+                                <button
+                                    key={cat.id}
+                                    onClick={() => setActiveCategory(cat.id)}
+                                    className={cn(
+                                        "px-5 py-2.5 rounded-2xl whitespace-nowrap text-sm font-black transition-all border-2",
+                                        activeCategory === cat.id
+                                            ? "bg-orange-500 text-white border-orange-500 shadow-md shadow-orange-500/25"
+                                            : "bg-white text-gray-600 border-gray-100 hover:border-orange-300 hover:bg-orange-50/50"
+                                    )}
+                                >
+                                    {cat.label}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
+                    {searchQuery && (
+                        <div className="px-1">
+                            <h3 className="text-sm font-bold text-gray-500">Resultados para "{searchQuery}"</h3>
+                        </div>
+                    )}
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-4">
-                    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-                        {filteredProducts.map(product => (
-                            <div
-                                key={product.id}
-                                className="bg-white rounded-2xl border p-3 flex flex-col cursor-pointer hover:shadow-lg transition-all active:scale-95 group"
-                                style={{ borderColor: T.border }}
-                                onClick={() => openProductModal(product)}
-                            >
-                                <div className="aspect-square bg-gray-50 rounded-xl mb-3 flex items-center justify-center overflow-hidden">
-                                    {product.imageUrl ? (
-                                        <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                                    ) : (
-                                        <span className="text-4xl text-gray-300">
-                                            {product.category === "dogos" ? "🌭" : product.category === "botanas" ? "🍟" : product.category === "bebidas" ? "🥤" : "🍔"}
-                                        </span>
-                                    )}
-                                </div>
-                                <h3 className="font-bold text-gray-800 text-sm leading-tight flex-1">{product.name}</h3>
-                                <div className="mt-2 flex items-center justify-between">
-                                    <span className="text-orange-500 font-extrabold">${product.price}</span>
-                                    <div className="w-7 h-7 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center">
-                                        <Plus size={16} strokeWidth={3} />
+                {/* Product Grid */}
+                <div className="flex-1 overflow-y-auto p-6">
+                    {filteredProducts.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                            <Search size={48} className="mb-4 opacity-20" />
+                            <p className="font-semibold text-lg">No se encontraron productos</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
+                            {filteredProducts.map(product => (
+                                <div
+                                    key={product.id}
+                                    className="bg-white rounded-3xl p-3 flex flex-col cursor-pointer shadow-sm hover:shadow-xl transition-all duration-200 active:scale-[0.98] group border border-gray-100/50"
+                                    onClick={() => openProductModal(product)}
+                                >
+                                    <div className="aspect-square bg-gray-50 rounded-2xl mb-4 flex items-center justify-center overflow-hidden relative">
+                                        {product.imageUrl ? (
+                                            <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                        ) : (
+                                            <span className="text-6xl drop-shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                                {product.category === "dogos" ? "🌭" : product.category === "botanas" ? "🍟" : product.category === "bebidas" ? "🥤" : "🍔"}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="px-1 flex flex-col flex-1">
+                                        <h3 className="font-extrabold text-gray-900 text-[15px] leading-tight flex-1 tracking-tight">{product.name}</h3>
+                                        <div className="mt-3 flex items-center justify-between">
+                                            <span className="text-orange-500 font-black text-[17px] tracking-tight">${product.price}</span>
+                                            <div className="w-9 h-9 bg-orange-500 text-white rounded-full flex items-center justify-center shadow-md shadow-orange-500/30 group-hover:bg-orange-600 transition-colors">
+                                                <Plus size={20} strokeWidth={3} />
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
 
             {/* Right Area: Cart Panel */}
-            <div className="w-96 bg-white border-l flex flex-col shadow-2xl z-10" style={{ borderColor: T.border }}>
-                <div className="p-4 border-b flex flex-col gap-3 shrink-0" style={{ borderColor: T.border }}>
-                    <h2 className="text-lg font-black text-gray-800 flex items-center gap-2">
-                        <ShoppingBag size={20} className="text-orange-500" /> Nuevo Pedido
+            <div className="w-[420px] bg-white border-l flex flex-col shadow-2xl z-20" style={{ borderColor: T.border }}>
+                <div className="p-5 border-b flex flex-col gap-4 shrink-0 bg-gray-50/50" style={{ borderColor: T.border }}>
+                    <h2 className="text-xl font-black text-gray-900 flex items-center gap-2">
+                        <ShoppingBag size={22} className="text-orange-500" /> Nuevo Pedido
                     </h2>
 
-                    <div className="flex bg-gray-100 rounded-xl p-1 gap-1">
+                    <div className="flex bg-gray-200/70 p-1.5 rounded-2xl gap-1">
                         <button
                             onClick={() => setOrderType("mesa")}
-                            className={cn("flex-1 py-1.5 text-xs font-bold rounded-lg transition-all", orderType === "mesa" ? "bg-white shadow text-gray-900" : "text-gray-500")}
+                            className={cn("flex-1 py-2 text-sm font-bold rounded-xl transition-all", orderType === "mesa" ? "bg-white shadow-sm text-gray-900" : "text-gray-500 hover:text-gray-700")}
                         >
                             Comedor
                         </button>
                         <button
                             onClick={() => setOrderType("domicilio")}
-                            className={cn("flex-1 py-1.5 text-xs font-bold rounded-lg transition-all", orderType === "domicilio" ? "bg-white shadow text-gray-900" : "text-gray-500")}
+                            className={cn("flex-1 py-2 text-sm font-bold rounded-xl transition-all", orderType === "domicilio" ? "bg-white shadow-sm text-gray-900" : "text-gray-500 hover:text-gray-700")}
                         >
                             Para Llevar
                         </button>
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="flex gap-3">
                         {orderType === "mesa" && (
-                            <input
-                                type="number"
-                                placeholder="Mesa #"
-                                value={tableNumber}
-                                onChange={(e) => setTableNumber(e.target.value)}
-                                className="w-1/3 bg-gray-50 border rounded-lg px-3 py-2 text-sm font-bold text-gray-800 outline-none focus:border-orange-500"
-                            />
+                            <div className="relative w-1/3">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">#</span>
+                                <input
+                                    type="number"
+                                    placeholder="Mesa"
+                                    value={tableNumber}
+                                    onChange={(e) => setTableNumber(e.target.value)}
+                                    className="w-full bg-white border border-gray-200 rounded-2xl pl-7 pr-3 py-2.5 text-sm font-bold text-gray-900 outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all shadow-sm"
+                                />
+                            </div>
                         )}
                         <input
                             type="text"
                             placeholder="Nombre del cliente"
                             value={customerName}
                             onChange={(e) => setCustomerName(e.target.value)}
-                            className="flex-1 bg-gray-50 border rounded-lg px-3 py-2 text-sm font-medium text-gray-800 outline-none focus:border-orange-500"
+                            className="flex-1 bg-white border border-gray-200 rounded-2xl px-4 py-2.5 text-sm font-medium text-gray-900 outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all shadow-sm"
                         />
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50/30">
+                <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-gray-50/30">
                     {cart.length === 0 ? (
-                        <div className="h-full flex flex-col items-center justify-center mt-12 text-gray-400">
-                            <UtensilsCrossed size={48} className="mb-4 opacity-20" />
-                            <p className="font-semibold text-sm">El carrito está vacío</p>
+                        <div className="h-full flex flex-col items-center justify-center mt-8 text-gray-400">
+                            <div className="w-24 h-24 bg-gray-100 flex items-center justify-center rounded-full mb-4">
+                                <UtensilsCrossed size={40} className="opacity-20 text-gray-600" />
+                            </div>
+                            <p className="font-bold text-gray-500">Agrega productos al carrito</p>
                         </div>
                     ) : (
                         cart.map((item) => (
-                            <div key={item.id} className="bg-white border rounded-xl p-3 shadow-sm relative group">
-                                <button onClick={() => removeCartItem(item.id)} className="absolute top-2 right-2 text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Trash2 size={16} />
+                            <div key={item.id} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm relative group transition-all hover:shadow-md hover:border-orange-100">
+                                <button onClick={() => removeCartItem(item.id)} className="absolute -top-2 -right-2 w-7 h-7 bg-white shadow-md border rounded-full flex items-center justify-center text-red-500 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50 hover:text-red-600">
+                                    <Trash2 size={14} strokeWidth={2.5} />
                                 </button>
-                                <div className="flex justify-between items-start mb-2 pr-5">
-                                    <span className="font-bold text-gray-800 text-sm leading-tight">{item.product.name}</span>
-                                    <span className="font-bold text-gray-900 text-sm">${item.unitPrice * item.quantity}</span>
+
+                                <div className="flex justify-between items-start mb-2 pr-2">
+                                    <span className="font-extrabold text-gray-900 text-[15px] leading-tight max-w-[75%]">{item.product.name}</span>
+                                    <span className="font-black text-gray-900 text-[15px]">${item.unitPrice * item.quantity}</span>
                                 </div>
 
                                 {item.extras.length > 0 && (
-                                    <div className="flex gap-1 flex-wrap mb-1">
+                                    <div className="flex gap-1.5 flex-wrap mb-2">
                                         {item.extras.map(e => (
-                                            <span key={e.id} className="text-[10px] bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded font-bold uppercase">+{e.name}</span>
+                                            <span key={e.id} className="text-[10px] bg-orange-100 text-orange-600 px-2 py-0.5 rounded-md font-bold uppercase tracking-wide">+{e.name}</span>
                                         ))}
                                     </div>
                                 )}
 
-                                {item.notes && <p className="text-[11px] text-gray-500 italic mb-2 line-clamp-1">"{item.notes}"</p>}
+                                {item.notes && <p className="text-xs text-amber-600 bg-amber-50 px-2 py-1.5 rounded-md font-medium mb-3 italic">Nota: {item.notes}</p>}
 
-                                <div className="flex items-center gap-3">
-                                    <button onClick={() => updateCartItemQty(item.id, -1)} className="w-7 h-7 flex items-center justify-center rounded-md bg-gray-100 text-gray-600 active:bg-gray-200">
-                                        <Minus size={14} />
+                                <div className="flex items-center gap-4 mt-3 bg-gray-50 w-fit rounded-xl p-1 border border-gray-100">
+                                    <button onClick={() => updateCartItemQty(item.id, -1)} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white shadow-sm text-gray-600 hover:text-black active:scale-95 transition-all">
+                                        <Minus size={16} strokeWidth={2.5} />
                                     </button>
-                                    <span className="font-bold text-sm w-4 text-center">{item.quantity}</span>
-                                    <button onClick={() => updateCartItemQty(item.id, 1)} className="w-7 h-7 flex items-center justify-center rounded-md bg-gray-100 text-gray-600 active:bg-gray-200">
-                                        <Plus size={14} />
+                                    <span className="font-black text-[15px] w-4 text-center">{item.quantity}</span>
+                                    <button onClick={() => updateCartItemQty(item.id, 1)} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white shadow-sm text-gray-600 hover:text-black active:scale-95 transition-all">
+                                        <Plus size={16} strokeWidth={2.5} />
                                     </button>
                                 </div>
                             </div>
@@ -257,15 +312,16 @@ export default function AdminPOS() {
                     )}
                 </div>
 
-                <div className="p-4 border-t bg-white shrink-0" style={{ borderColor: T.border }}>
-                    <div className="flex justify-between items-center mb-4">
-                        <span className="text-sm font-bold text-gray-500 uppercase tracking-widest">Total</span>
-                        <span className="text-3xl font-black text-gray-900">${totalCart}</span>
+                <div className="p-6 border-t bg-white shrink-0 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.05)]" style={{ borderColor: T.border }}>
+                    <div className="flex justify-between items-end mb-5">
+                        <span className="text-[13px] font-black text-gray-400 uppercase tracking-[0.2em]">Total Final</span>
+                        <span className="text-[38px] font-black text-gray-900 leading-none">${totalCart}</span>
                     </div>
                     <button
                         onClick={submitOrder}
                         disabled={cart.length === 0}
-                        className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 text-white font-bold text-lg py-4 rounded-xl shadow-lg shadow-orange-500/30 transition-all active:scale-95 disabled:active:scale-100 disabled:shadow-none"
+                        className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-gray-100 disabled:text-gray-400 text-white font-black text-[17px] py-4.5 rounded-2xl shadow-xl shadow-orange-500/30 transition-all active:scale-[0.98] disabled:active:scale-100 disabled:shadow-none flex items-center justify-center gap-2"
+                        style={{ padding: "18px" }}
                     >
                         Cobrar y Enviar Comanda
                     </button>
@@ -274,20 +330,20 @@ export default function AdminPOS() {
 
             {/* Product Modal (Fast Add) */}
             {selectedProduct && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col">
-                        <div className="p-5 border-b flex justify-between items-center relative pb-3">
-                            <h3 className="font-black text-xl text-gray-900">{selectedProduct.name}</h3>
-                            <button onClick={() => setSelectedProduct(null)} className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full text-gray-600">
-                                <X size={18} />
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm">
+                    <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm overflow-hidden flex flex-col transform transition-all">
+                        <div className="p-6 border-b border-gray-100 flex justify-between items-center relative">
+                            <h3 className="font-black text-2xl text-gray-900 tracking-tight">{selectedProduct.name}</h3>
+                            <button onClick={() => setSelectedProduct(null)} className="w-9 h-9 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-full text-gray-600 transition-colors">
+                                <X size={20} />
                             </button>
                         </div>
 
-                        <div className="p-5 overflow-y-auto max-h-[60vh]">
+                        <div className="p-6 overflow-y-auto max-h-[60vh] space-y-6">
                             {selectedProduct.category !== 'extras' && extrasList.length > 0 && (
-                                <div className="mb-5">
-                                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Extras</h4>
-                                    <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                    <h4 className="text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] mb-4">Añadir Extras</h4>
+                                    <div className="grid grid-cols-2 gap-3">
                                         {extrasList.map(extra => {
                                             const isSelected = selectedExtras.some(e => e.id === extra.id);
                                             return (
@@ -301,12 +357,12 @@ export default function AdminPOS() {
                                                         }
                                                     }}
                                                     className={cn(
-                                                        "px-3 py-2 rounded-xl text-sm font-bold border-2 transition-all flex justify-between items-center",
-                                                        isSelected ? "border-orange-500 bg-orange-50 text-orange-600" : "border-gray-100 bg-gray-50 text-gray-600"
+                                                        "px-3 py-3 rounded-2xl text-[13px] font-bold border-2 transition-all flex flex-col justify-center items-start gap-1",
+                                                        isSelected ? "border-orange-500 bg-orange-50 text-orange-600" : "border-gray-100 bg-white text-gray-600 hover:border-gray-200"
                                                     )}
                                                 >
-                                                    <span>{extra.name}</span>
-                                                    <span className="opacity-70 text-xs">+${extra.price}</span>
+                                                    <span className="leading-tight text-left">{extra.name}</span>
+                                                    <span className={cn("text-[11px]", isSelected ? "text-orange-500/80" : "text-gray-400")}>+${extra.price}</span>
                                                 </button>
                                             );
                                         })}
@@ -315,39 +371,40 @@ export default function AdminPOS() {
                             )}
 
                             <div>
-                                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Notas Generales</h4>
+                                <h4 className="text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] mb-4">Notas Generales</h4>
                                 <textarea
                                     rows={2}
-                                    className="w-full bg-gray-50 border rounded-xl p-3 text-sm focus:border-orange-500 outline-none resize-none"
-                                    placeholder="Sin cebolla, etc..."
+                                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 text-[14px] font-medium text-gray-800 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none resize-none transition-all placeholder:text-gray-400"
+                                    placeholder="Ej: Sin tomate, dorados..."
                                     value={notes}
                                     onChange={(e) => setNotes(e.target.value)}
                                 />
                             </div>
 
-                            <div className="mt-5 flex items-center justify-center gap-6">
+                            <div className="pt-2 flex items-center justify-center gap-8">
                                 <button
                                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                    className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 active:bg-gray-200"
+                                    className="w-14 h-14 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 active:scale-90 transition-transform hover:bg-gray-200"
                                 >
-                                    <Minus size={20} />
+                                    <Minus size={24} />
                                 </button>
-                                <span className="text-3xl font-black w-8 text-center">{quantity}</span>
+                                <span className="text-4xl font-black w-8 text-center text-gray-900">{quantity}</span>
                                 <button
                                     onClick={() => setQuantity(quantity + 1)}
-                                    className="w-12 h-12 flex items-center justify-center rounded-full bg-orange-100 text-orange-600 active:bg-orange-200"
+                                    className="w-14 h-14 flex items-center justify-center rounded-full bg-orange-100 text-orange-600 active:scale-90 transition-transform hover:bg-orange-200"
                                 >
-                                    <Plus size={20} />
+                                    <Plus size={24} />
                                 </button>
                             </div>
                         </div>
 
-                        <div className="p-5 border-t bg-gray-50">
+                        <div className="p-6 border-t border-gray-100 bg-gray-50/50">
                             <button
                                 onClick={handleAddToCart}
-                                className="w-full bg-gray-900 text-white font-bold py-4 rounded-xl active:scale-95 transition-all text-lg shadow-xl shadow-gray-900/20"
+                                className="w-full bg-gray-900 hover:bg-black text-white font-black py-4.5 rounded-2xl active:scale-[0.98] transition-all text-lg shadow-xl shadow-gray-900/20 flex justify-center items-center gap-2"
+                                style={{ padding: "18px" }}
                             >
-                                Agregar ${((selectedProduct.price + selectedExtras.reduce((s, e) => s + e.price, 0)) * quantity)}
+                                Añadir · ${((selectedProduct.price + selectedExtras.reduce((s, e) => s + e.price, 0)) * quantity)}
                             </button>
                         </div>
                     </div>
