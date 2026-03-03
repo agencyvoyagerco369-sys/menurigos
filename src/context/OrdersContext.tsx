@@ -58,13 +58,13 @@ const dbToOrder = (row: any, items: any[]): Order => ({
     },
     extras: Array.isArray(it.extras)
       ? it.extras.map((e: any) => ({
-          id: e.id || "",
-          name: e.name || "",
-          price: e.price || 0,
-          category: "extras",
-          active: true,
-          soldOut: false,
-        }))
+        id: e.id || "",
+        name: e.name || "",
+        price: e.price || 0,
+        category: "extras",
+        active: true,
+        soldOut: false,
+      }))
       : [],
     notes: it.notes || "",
     quantity: it.quantity,
@@ -191,6 +191,7 @@ export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           delivery_details: order.deliveryDetails ? (order.deliveryDetails as any) : null,
           total: order.total,
           status: "recibido",
+          payment_method: order.paymentMethod || null,
         })
         .select()
         .single();

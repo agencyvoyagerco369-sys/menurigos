@@ -181,8 +181,8 @@ const ActionButtons = ({ order, onAction, isDelivery }: { order: Order; onAction
       )}
       {order.status === "listo" && (
         <button onClick={() => onAction(order.id, "entregado")}
-          className={cn(btnBase, "hover:brightness-110")} style={{ background: "#3B82F6", color: "#FFFFFF" }}>
-          <Package size={18} strokeWidth={2.5} /> {isDelivery ? "Marcar Entregado" : "Cobrar y Entregar"}
+          className={cn(btnBase, "hover:brightness-110")} style={{ background: order.paymentMethod ? "#10B981" : "#3B82F6", color: "#FFFFFF" }}>
+          <Package size={18} strokeWidth={2.5} /> {isDelivery ? "Marcar Entregado" : order.paymentMethod ? "✅ Entregar" : "Cobrar y Entregar"}
         </button>
       )}
     </div>
@@ -300,6 +300,11 @@ const OrderCard = ({ order, onAction, isDelivery }: { order: Order; onAction: (i
         <div className="flex flex-col items-end gap-1.5">
           <div className="flex items-center gap-2">
             {!isDone && <UrgencyBadge minutes={mins} />}
+            {order.paymentMethod && (
+              <span className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider" style={{ background: "#D1FAE5", color: "#065F46", border: "1px solid #A7F3D0" }}>
+                💰 Pagado {order.paymentMethod === "terminal" ? "(Terminal)" : "(Efectivo)"}
+              </span>
+            )}
             <StatusBadge status={order.status} />
           </div>
           {!isDone && (
