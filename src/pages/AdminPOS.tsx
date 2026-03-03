@@ -388,7 +388,7 @@ export default function AdminPOS() {
                             </div>
 
                             {/* Payment Method & Checkout Block (Flows with scroll) */}
-                            <div className="mt-auto pt-6 flex flex-col gap-4">
+                            <div className="mt-6 flex flex-col gap-4">
                                 {/* Payment Selector */}
                                 <div className="border-t border-gray-100 pt-5">
                                     <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
