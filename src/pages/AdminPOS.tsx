@@ -385,60 +385,67 @@ export default function AdminPOS() {
                             );
                         })
                     )}
+
+                    {/* Payment Method Selector (Bellow items) */}
+                    {cart.length > 0 && (
+                        <div className="mt-6 border-t border-gray-100 pt-5">
+                            <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                Método de Pago
+                            </h3>
+                            <div className="grid grid-cols-2 gap-3">
+                                <button
+                                    onClick={() => setPaymentMethod("efectivo")}
+                                    className={cn(
+                                        "py-3 rounded-2xl text-sm font-black transition-all flex flex-col items-center justify-center gap-1 group",
+                                        paymentMethod === "efectivo"
+                                            ? "bg-green-500 text-white shadow-lg shadow-green-500/30 scale-100 ring-4 ring-green-500/20"
+                                            : "bg-gray-50 border-2 border-transparent text-gray-500 hover:bg-green-50 hover:text-green-600 scale-95"
+                                    )}
+                                >
+                                    <span className={cn("text-2xl transition-transform", paymentMethod === "efectivo" && "scale-110")}>💵</span>
+                                    Efectivo
+                                </button>
+                                <button
+                                    onClick={() => setPaymentMethod("terminal")}
+                                    className={cn(
+                                        "py-3 rounded-2xl text-sm font-black transition-all flex flex-col items-center justify-center gap-1 group",
+                                        paymentMethod === "terminal"
+                                            ? "bg-blue-500 text-white shadow-lg shadow-blue-500/30 scale-100 ring-4 ring-blue-500/20"
+                                            : "bg-gray-50 border-2 border-transparent text-gray-500 hover:bg-blue-50 hover:text-blue-600 scale-95"
+                                    )}
+                                >
+                                    <span className={cn("text-2xl transition-transform", paymentMethod === "terminal" && "scale-110")}>💳</span>
+                                    Terminal
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Cart Footer - Always Visible */}
                 <div className="p-4 border-t bg-white shrink-0 shadow-[0_-5px_20px_-10px_rgba(0,0,0,0.08)]" style={{ borderColor: T.border }}>
                     <div className="flex justify-between items-end mb-3">
-                        <span className="text-xs font-black text-gray-400 uppercase tracking-wider">Total</span>
-                        <span className="text-3xl font-black text-orange-500 leading-none">${totalCart}</span>
+                        <span className="text-xs font-black text-gray-400 uppercase tracking-wider">Total a Cobrar</span>
+                        <span className="text-[32px] font-black text-gray-900 leading-none">${totalCart}</span>
                     </div>
-
-                    {/* Payment Method Selector */}
-                    {cart.length > 0 && (
-                        <div className="flex gap-2 mb-3">
-                            <button
-                                onClick={() => setPaymentMethod("efectivo")}
-                                className={cn(
-                                    "flex-1 py-2.5 rounded-xl text-sm font-bold transition-all border-2 flex items-center justify-center gap-2",
-                                    paymentMethod === "efectivo"
-                                        ? "border-green-500 bg-green-50 text-green-700 shadow-sm"
-                                        : "border-gray-200 bg-white text-gray-500 hover:border-green-300"
-                                )}
-                            >
-                                💵 Efectivo
-                            </button>
-                            <button
-                                onClick={() => setPaymentMethod("terminal")}
-                                className={cn(
-                                    "flex-1 py-2.5 rounded-xl text-sm font-bold transition-all border-2 flex items-center justify-center gap-2",
-                                    paymentMethod === "terminal"
-                                        ? "border-blue-500 bg-blue-50 text-blue-700 shadow-sm"
-                                        : "border-gray-200 bg-white text-gray-500 hover:border-blue-300"
-                                )}
-                            >
-                                💳 Terminal
-                            </button>
-                        </div>
-                    )}
 
                     <button
                         onClick={submitOrder}
                         disabled={cart.length === 0}
                         className={cn(
-                            "w-full font-black text-base py-4 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2",
+                            "w-full font-black text-[17px] py-4 rounded-2xl transition-all active:scale-[0.98] flex items-center justify-center gap-2",
                             cart.length > 0
                                 ? paymentMethod === "terminal"
-                                    ? "bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/30"
-                                    : "bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-600/30"
+                                    ? "bg-blue-600 hover:bg-blue-700 text-white shadow-[0_8px_20px_-8px_rgba(37,99,235,0.6)]"
+                                    : "bg-green-600 hover:bg-green-700 text-white shadow-[0_8px_20px_-8px_rgba(22,163,74,0.6)]"
                                 : "bg-gray-100 text-gray-400 cursor-not-allowed"
                         )}
                     >
                         {cart.length > 0
                             ? paymentMethod === "terminal"
-                                ? `💳 Cobrar con Terminal $${totalCart}`
-                                : `💵 Cobrar Efectivo $${totalCart}`
-                            : "Agrega productos para cobrar"}
+                                ? `Cobrar con Terminal`
+                                : `Cobrar en Efectivo`
+                            : "Vacio"}
                     </button>
                 </div>
             </div>
