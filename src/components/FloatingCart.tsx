@@ -1,7 +1,7 @@
 import { useCart } from "@/context/CartContext";
 import { useOrders } from "@/context/OrdersContext";
 import { ShoppingCart, Minus, Plus, Trash2, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -11,12 +11,17 @@ const FloatingCart = () => {
   const { addOrder } = useOrders();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const handleOpen = () => setOpen(true);
+    window.addEventListener("open-cart", handleOpen);
+    return () => window.removeEventListener("open-cart", handleOpen);
+  }, []);
 
   const handleSendOrder = async () => {
     if (items.length === 0) return;
 
     // If delivery, go to checkout page instead of sending directly
-    if (orderType === "domicilio") {
+    if (isDelivery) {
       setOpen(false);
       navigate("/checkout-domicilio");
       return;
@@ -40,20 +45,7 @@ const FloatingCart = () => {
     <>
       {/* Floating button */}
       <AnimatePresence>
-        {itemCount > 0 && !open && (
-          <motion.button
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
-            onClick={() => setOpen(true)}
-            className="fixed bottom-6 right-5 z-40 flex h-16 w-16 items-center justify-center rounded-full bg-primary shadow-brand"
-          >
-            <ShoppingCart size={26} className="text-primary-foreground" />
-            <span className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-foreground text-xs font-bold text-background border-2 border-background">
-              {itemCount}
-            </span>
-          </motion.button>
-        )}
+        {/* El botón flotante ha sido reemplazado por la Bottom Navigation Bar */}
       </AnimatePresence>
 
       {/* Cart panel */}
