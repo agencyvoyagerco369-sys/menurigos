@@ -388,8 +388,8 @@ export default function AdminPOS() {
                 <div className="fixed inset-0 z-[100] flex justify-center items-center p-4 sm:p-6 bg-gray-900/70 backdrop-blur-sm animate-in fade-in duration-200">
                     {/* Contenedor Bulletproof con altura estricta */}
                     <div
-                        className="bg-white w-full max-w-3xl flex flex-col shadow-2xl overflow-hidden rounded-[2rem] animate-in zoom-in-95 duration-300 relative"
-                        style={{ maxHeight: 'calc(100vh - 2rem)' }}
+                        className="bg-white w-full max-w-3xl flex flex-col shadow-2xl overflow-hidden sm:rounded-[2rem] animate-in zoom-in-95 duration-300 relative"
+                        style={{ maxHeight: '85vh', height: '100%' }}
                     >
 
                         {/* Modal Header */}
