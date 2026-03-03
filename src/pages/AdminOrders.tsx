@@ -78,8 +78,8 @@ const UrgencyBadge = ({ minutes }: { minutes: number }) => {
 const MesaAvatar = ({ num }: { num: number }) => {
   const color = MESA_COLORS[(num - 1) % MESA_COLORS.length];
   return (
-    <div className="flex h-11 w-11 items-center justify-center rounded-xl text-base font-extrabold font-pos text-white"
-      style={{ background: color }}>
+    <div className="flex h-[44px] w-[44px] items-center justify-center rounded-2xl text-[17px] font-black font-pos text-white shadow-sm"
+      style={{ background: `linear-gradient(135deg, ${color}, ${color}dd)` }}>
       {String(num).padStart(2, "0")}
     </div>
   );
@@ -126,36 +126,35 @@ const StatCard = ({ label, value, icon: Icon, color, isBrand }: {
 
 /* ═══════════════════ ITEMS LIST ═══════════════════ */
 const OrderItemsList = ({ items }: { items: Order["items"] }) => (
-  <div className="space-y-1.5">
-    {items.map((item) => (
-      <div key={item.id} className="flex items-start justify-between gap-3 rounded-lg px-3 py-2.5"
-        style={{ background: "rgba(0,0,0,0.03)", borderBottom: `1px solid ${P.border}` }}>
-        <div className="flex items-start gap-3">
-          <span className="mt-0.5 flex h-7 min-w-7 items-center justify-center rounded-md text-sm font-extrabold font-pos"
-            style={{ background: "rgba(0,0,0,0.05)", color: P.text }}>
+  <div className="space-y-0.5 px-1 pb-1">
+    {items.map((item, idx) => (
+      <div key={item.id} className="flex items-start justify-between gap-3 py-3"
+        style={{ borderBottom: idx !== items.length - 1 ? `1px solid ${P.border}` : "none" }}>
+        <div className="flex items-start gap-4 w-full">
+          <span className="mt-0 flex h-[26px] min-w-[26px] shrink-0 items-center justify-center rounded-full text-[13px] font-black font-pos"
+            style={{ background: "rgba(0,0,0,0.06)", color: P.text }}>
             {item.quantity}
           </span>
-          <div>
-            <span className="text-[15px] font-bold font-pos" style={{ color: P.text }}>{item.product.name}</span>
+          <div className="flex-1 min-w-0 -mt-1">
+            <span className="text-[15px] font-extrabold font-pos text-gray-800 tracking-tight">{item.product.name}</span>
             {item.extras.length > 0 && (
-              <div className="mt-1 flex flex-wrap gap-1">
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
                 {item.extras.map((e, i) => (
-                  <span key={i} className="rounded px-1.5 py-0.5 text-[10px] font-bold font-pos uppercase"
-                    style={{ background: "rgba(245,158,11,0.15)", color: "#FBBF24" }}>
+                  <span key={i} className="rounded-md px-2 py-0.5 text-[10px] font-bold font-pos uppercase tracking-wide"
+                    style={{ background: "rgba(245,158,11,0.15)", color: "#D97706" }}>
                     + {e.name}
                   </span>
                 ))}
               </div>
             )}
             {item.notes && (
-              <p className="mt-1 flex items-center gap-1.5 rounded px-2 py-0.5 text-[11px] font-pos"
-                style={{ background: "rgba(245,158,11,0.1)", color: "#FBBF24" }}>
-                <MessageSquare size={10} strokeWidth={2} /> {item.notes}
+              <p className="mt-1.5 flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-pos font-medium bg-amber-50 text-amber-700">
+                <MessageSquare size={12} strokeWidth={2.5} /> {item.notes}
               </p>
             )}
           </div>
         </div>
-        <span className="shrink-0 font-pos text-sm font-bold tabular-nums" style={{ color: P.textSecondary }}>
+        <span className="shrink-0 font-pos text-[15px] font-bold tabular-nums text-gray-800 mt-[1px]">
           ${item.unitPrice * item.quantity}
         </span>
       </div>
@@ -319,79 +318,87 @@ const OrderCard = ({ order, onAction, isDelivery }: { order: Order; onAction: (i
       </div>
 
       {/* BODY */}
-      <div className="space-y-3 p-4" style={{ lineHeight: 1.6 }}>
-        {/* Delivery info */}
-        {isDelivery && (
-          <div className="space-y-1.5 rounded-lg p-3" style={{ background: "rgba(0,0,0,0.02)", border: `1px solid ${P.border}` }}>
-            {order.customerName && (
-              <div className="flex items-center gap-2 text-xs font-pos">
-                <User size={13} strokeWidth={2} style={{ color: "#A78BFA" }} />
-                <span className="font-semibold" style={{ color: P.text }}>{order.customerName}</span>
-              </div>
-            )}
-            {order.customerPhone && (
-              <div className="flex items-center gap-2 text-xs font-pos">
-                <Phone size={13} strokeWidth={2} style={{ color: "#34D399" }} />
-                <a href={`tel:${order.customerPhone}`} className="font-semibold hover:underline" style={{ color: "#34D399" }}>{order.customerPhone}</a>
-              </div>
-            )}
-            {order.customerAddress && (
-              <div className="flex items-start gap-2 text-xs font-pos">
-                <MapPin size={13} strokeWidth={2} className="mt-0.5" style={{ color: "#FBBF24" }} />
-                <span style={{ color: P.textMuted }}>{order.customerAddress}</span>
-              </div>
-            )}
-            {dd && (
-              <>
-                <div className="flex items-center gap-2 text-xs font-pos" style={{ color: P.textMuted }}>
-                  {dd.type === "casa" ? <Home size={13} strokeWidth={2} /> : <Building2 size={13} strokeWidth={2} />}
-                  <span className="capitalize">{dd.type === "casa" ? "Casa" : `Depto ${dd.aptNumber || ""} · Piso ${dd.floor || ""}`}</span>
+      <div className="pt-0 pb-0" style={{ lineHeight: 1.6 }}>
+        <div className="px-4 space-y-3 pt-2 bg-[#F9FAFB]/50 mx-3 mt-3 rounded-xl">
+          {/* Delivery info */}
+          {isDelivery && (
+            <div className="space-y-1.5 mb-2 rounded-lg p-3" style={{ background: "rgba(0,0,0,0.02)", border: `1px solid ${P.border}` }}>
+              {order.customerName && (
+                <div className="flex items-center gap-2 text-xs font-pos">
+                  <User size={13} strokeWidth={2} style={{ color: "#A78BFA" }} />
+                  <span className="font-semibold" style={{ color: P.text }}>{order.customerName}</span>
                 </div>
-                {dd.references && (
-                  <div className="flex items-start gap-2 text-xs font-pos">
-                    <Navigation size={13} strokeWidth={2} className="mt-0.5" style={{ color: "#60A5FA" }} />
-                    <span className="italic" style={{ color: P.textDim }}>{dd.references}</span>
-                  </div>
-                )}
-                {dd.hasControlledAccess && dd.accessInstructions && (
-                  <div className="flex items-start gap-2 text-xs font-pos">
-                    <AlertTriangle size={13} strokeWidth={2} className="mt-0.5" style={{ color: "#F87171" }} />
-                    <span className="font-semibold" style={{ color: "#F87171" }}>{dd.accessInstructions}</span>
-                  </div>
-                )}
-                <div className="flex items-center gap-2 text-xs font-pos" style={{ color: P.textMuted }}>
-                  {dd.paymentMethod === "efectivo" ? <Banknote size={13} strokeWidth={2} style={{ color: "#34D399" }} /> : <CreditCard size={13} strokeWidth={2} style={{ color: "#60A5FA" }} />}
-                  <span className="font-semibold capitalize">Pago: {dd.paymentMethod}</span>
+              )}
+              {order.customerPhone && (
+                <div className="flex items-center gap-2 text-xs font-pos">
+                  <Phone size={13} strokeWidth={2} style={{ color: "#34D399" }} />
+                  <a href={`tel:${order.customerPhone}`} className="font-semibold hover:underline" style={{ color: "#34D399" }}>{order.customerPhone}</a>
                 </div>
-              </>
-            )}
-          </div>
-        )}
+              )}
+              {order.customerAddress && (
+                <div className="flex items-start gap-2 text-xs font-pos">
+                  <MapPin size={13} strokeWidth={2} className="mt-0.5" style={{ color: "#FBBF24" }} />
+                  <span style={{ color: P.textMuted }}>{order.customerAddress}</span>
+                </div>
+              )}
+              {dd && (
+                <>
+                  <div className="flex items-center gap-2 text-xs font-pos" style={{ color: P.textMuted }}>
+                    {dd.type === "casa" ? <Home size={13} strokeWidth={2} /> : <Building2 size={13} strokeWidth={2} />}
+                    <span className="capitalize">{dd.type === "casa" ? "Casa" : `Depto ${dd.aptNumber || ""} · Piso ${dd.floor || ""}`}</span>
+                  </div>
+                  {dd.references && (
+                    <div className="flex items-start gap-2 text-xs font-pos">
+                      <Navigation size={13} strokeWidth={2} className="mt-0.5" style={{ color: "#60A5FA" }} />
+                      <span className="italic" style={{ color: P.textDim }}>{dd.references}</span>
+                    </div>
+                  )}
+                  {dd.hasControlledAccess && dd.accessInstructions && (
+                    <div className="flex items-start gap-2 text-xs font-pos">
+                      <AlertTriangle size={13} strokeWidth={2} className="mt-0.5" style={{ color: "#F87171" }} />
+                      <span className="font-semibold" style={{ color: "#F87171" }}>{dd.accessInstructions}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 text-xs font-pos" style={{ color: P.textMuted }}>
+                    {dd.paymentMethod === "efectivo" ? <Banknote size={13} strokeWidth={2} style={{ color: "#34D399" }} /> : <CreditCard size={13} strokeWidth={2} style={{ color: "#60A5FA" }} />}
+                    <span className="font-semibold capitalize">Pago: {dd.paymentMethod}</span>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
 
-        {/* Items */}
-        <OrderItemsList items={order.items} />
-
-        {/* Total */}
-        <div className="flex items-center justify-between pt-3" style={{ borderTop: `1px solid ${P.border}` }}>
-          <span className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.1em] font-pos"
-            style={{ color: P.textDim }}>
-            <Receipt size={13} strokeWidth={2} /> Total
-          </span>
-          <span className="text-[24px] font-extrabold font-pos" style={{ color: P.text }}>${order.total}</span>
+          {/* Items */}
+          <OrderItemsList items={order.items} />
         </div>
 
-        {/* WhatsApp */}
-        {isDelivery && !isDone && order.customerPhone && (
-          <a href={`https://wa.me/52${order.customerPhone.replace(/\D/g, "")}?text=${encodeURIComponent(`Hola ${order.customerName || ""}, tu pedido de Rigo's está ${order.status === "listo" ? "listo y en camino" : "siendo preparado"}`)}`}
-            target="_blank" rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-bold font-pos text-white transition-all duration-150 hover:brightness-110 active:scale-[0.97]"
-            style={{ background: "#25D366" }}>
-            <Phone size={16} strokeWidth={2} /> WhatsApp <ExternalLink size={12} strokeWidth={2} />
-          </a>
-        )}
+        {/* Total (Receipt Divider) */}
+        <div className="relative mt-2 flex items-center justify-between px-6 pt-5 pb-3 bg-[#F9FAFB]/50 mx-3 rounded-b-xl"
+          style={{ borderTop: `2px dashed ${P.border}` }}>
+          {/* Ticket effect cutouts */}
+          <div className="absolute -left-2 -top-2.5 h-6 w-6 rounded-full z-10" style={{ background: P.card, borderRight: `1px solid ${P.border}`, borderBottom: `1px solid transparent`, transform: "rotate(-45deg)" }} />
+          <div className="absolute -right-2 -top-2.5 h-6 w-6 rounded-full z-10" style={{ background: P.card, borderLeft: `1px solid ${P.border}`, borderBottom: `1px solid transparent`, transform: "rotate(45deg)" }} />
 
-        {/* Actions */}
-        {!isDone && <ActionButtons order={order} onAction={onAction} isDelivery={isDelivery} />}
+          <span className="flex items-center gap-2 text-[12px] font-bold uppercase tracking-[0.1em] font-pos text-gray-400">
+            <Receipt size={16} strokeWidth={2.5} /> Total
+          </span>
+          <span className="text-[32px] font-black font-pos text-gray-900 leading-none">${order.total}</span>
+        </div>
+
+        <div className="px-4 pb-4 pt-3 space-y-3">
+          {/* WhatsApp */}
+          {isDelivery && !isDone && order.customerPhone && (
+            <a href={`https://wa.me/52${order.customerPhone.replace(/\D/g, "")}?text=${encodeURIComponent(`Hola ${order.customerName || ""}, tu pedido de Rigo's está ${order.status === "listo" ? "listo y en camino" : "siendo preparado"}`)}`}
+              target="_blank" rel="noopener noreferrer"
+              className="mt-1 flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-bold font-pos text-white transition-all duration-150 hover:brightness-110 active:scale-[0.97]"
+              style={{ background: "#25D366" }}>
+              <Phone size={16} strokeWidth={2} /> WhatsApp <ExternalLink size={12} strokeWidth={2} />
+            </a>
+          )}
+
+          {/* Actions */}
+          {!isDone && <ActionButtons order={order} onAction={onAction} isDelivery={isDelivery} />}
+        </div>
       </div>
     </motion.div>
   );
