@@ -92,9 +92,9 @@ const TimerBadge = ({ createdAt }: { createdAt: Date }) => {
   const isUrgent = mins >= 20;
   const isWarn = mins >= 10;
 
-  const bg = isUrgent ? "rgba(212,43,43,0.15)" : isWarn ? "rgba(245,158,11,0.15)" : "rgba(255,255,255,0.06)";
-  const border = isUrgent ? "#D42B2B" : isWarn ? "#F59E0B" : P.border;
-  const color = isUrgent ? "#F87171" : isWarn ? "#FBBF24" : P.textMuted;
+  const bg = isUrgent ? "rgba(212,43,43,0.15)" : isWarn ? "rgba(245,158,11,0.15)" : "rgba(212,43,43,0.08)";
+  const border = isUrgent ? "#D42B2B" : isWarn ? "#F59E0B" : "#D42B2B";
+  const color = isUrgent ? "#F87171" : isWarn ? "#FBBF24" : "#D42B2B";
 
   return (
     <motion.div
