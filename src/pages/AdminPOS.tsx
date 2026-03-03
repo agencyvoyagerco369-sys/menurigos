@@ -412,7 +412,7 @@ export default function AdminPOS() {
                         </div>
 
                         {/* Modal Body - Scrollable */}
-                        <div className="flex-1 overflow-y-auto p-6 md:p-8 bg-gray-50/50">
+                        <div className="flex-1 overflow-y-auto min-h-0 p-6 md:p-8 bg-gray-50/50">
 
                             {/* STEP 1: EXTRAS & PREPARATION */}
                             {modalStep === "extras" && (
