@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { T } from "@/lib/admin-theme";
 import {
   BarChart3, Bell, Box, DollarSign, Home, LogOut,
-  Menu as MenuIcon, Moon, Settings, Sun, TrendingUp, X,
+  Menu as MenuIcon, Moon, Settings, Sun, TrendingUp, X, ShoppingCart
 } from "lucide-react";
 import logoRigos from "@/assets/logo-rigos.png";
 
@@ -14,6 +14,7 @@ const D = T;
 
 const NAV_ITEMS = [
   { path: "/admin/inicio", label: "Inicio", icon: Home },
+  { path: "/admin/pos", label: "Punto de Venta", icon: ShoppingCart },
   { path: "/admin/pedidos", label: "Pedidos activos", icon: Bell },
   { path: "/admin/productos", label: "Productos", icon: Box },
   { path: "/admin/caja", label: "Caja del día", icon: DollarSign },

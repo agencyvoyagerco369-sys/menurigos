@@ -19,6 +19,7 @@ import AdminProducts from "./pages/AdminProducts";
 import AdminCashRegister from "./pages/AdminCashRegister";
 import AdminReports from "./pages/AdminReports";
 import AdminSettings from "./pages/AdminSettings";
+import AdminPOS from "./pages/AdminPOS";
 import OrderTracking from "./pages/OrderTracking";
 import DeliveryCheckout from "./pages/DeliveryCheckout";
 import DeliverySuccess from "./pages/DeliverySuccess";
@@ -52,6 +53,9 @@ const App = () => (
                   </Route>
                   <Route path="/admin/pedidos" element={<AdminLayout />}>
                     <Route index element={<AdminOrders />} />
+                  </Route>
+                  <Route path="/admin/pos" element={<AdminLayout />}>
+                    <Route index element={<AdminPOS />} />
                   </Route>
                   <Route path="/admin/productos" element={<AdminLayout />}>
                     <Route index element={<AdminProducts />} />
