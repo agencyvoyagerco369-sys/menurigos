@@ -62,7 +62,6 @@ export default function AdminPOS() {
     /** Click any product → add to cart instantly */
     const addProductToCart = (product: Product) => {
         setCart(prev => {
-            // Merge with existing identical item (same product, no extras, no notes)
             const existing = prev.find(i => i.product.id === product.id && i.extras.length === 0 && !i.notes);
             if (existing) {
                 return prev.map(i => i.id === existing.id ? { ...i, quantity: i.quantity + 1 } : i);
@@ -77,7 +76,6 @@ export default function AdminPOS() {
             }];
         });
 
-        // Show upselling banner after adding a main dish
         if (product.category === "dogos" || product.category === "chiles") {
             setShowUpsell(true);
             setTimeout(() => setShowUpsell(false), 8000);
@@ -294,159 +292,159 @@ export default function AdminPOS() {
                     </div>
                 )}
 
-                {/* Cart Items */}
-                <div className="flex-1 overflow-y-auto p-3 space-y-3 min-h-0">
+                {/* SCROLLABLE AREA: Items + Footer */}
+                <div className="flex-1 overflow-y-auto p-3 flex flex-col min-h-0">
                     {cart.length === 0 ? (
-                        <div className="h-full flex flex-col items-center justify-center text-gray-400">
+                        <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
                             <UtensilsCrossed size={36} className="opacity-20 mb-3" />
                             <p className="font-bold text-gray-500 text-center text-sm">Toca un producto<br />para agregarlo aquí</p>
                         </div>
                     ) : (
-                        cart.map((item) => {
-                            const isExpanded = expandedItem === item.id;
-                            const isDogo = item.product.category === "dogos" || item.product.category === "chiles";
-                            return (
-                                <div key={item.id} className="bg-white border border-gray-100 rounded-xl p-3 shadow-sm transition-all">
-                                    {/* Main Row */}
-                                    <div className="flex items-center gap-2">
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-start justify-between gap-2">
-                                                <span className="font-bold text-gray-900 text-sm leading-tight line-clamp-2">{item.product.name}</span>
-                                                <span className="font-black text-gray-900 text-sm shrink-0">${item.unitPrice * item.quantity}</span>
+                        <>
+                            {/* Items List */}
+                            <div className="space-y-3">
+                                {cart.map((item) => {
+                                    const isExpanded = expandedItem === item.id;
+                                    const isDogo = item.product.category === "dogos" || item.product.category === "chiles";
+                                    return (
+                                        <div key={item.id} className="bg-white border border-gray-100 rounded-xl p-3 shadow-sm transition-all">
+                                            {/* Main Row */}
+                                            <div className="flex items-center gap-2">
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-start justify-between gap-2">
+                                                        <span className="font-bold text-gray-900 text-sm leading-tight line-clamp-2">{item.product.name}</span>
+                                                        <span className="font-black text-gray-900 text-sm shrink-0">${item.unitPrice * item.quantity}</span>
+                                                    </div>
+                                                    {item.extras.length > 0 && (
+                                                        <div className="flex gap-1 flex-wrap mt-1">
+                                                            {item.extras.map(e => (
+                                                                <span key={e.id} className="text-[9px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded font-bold">+{e.name}</span>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                    {item.notes && <p className="text-[10px] text-amber-600 mt-1 italic">📝 {item.notes}</p>}
+                                                </div>
                                             </div>
-                                            {item.extras.length > 0 && (
-                                                <div className="flex gap-1 flex-wrap mt-1">
-                                                    {item.extras.map(e => (
-                                                        <span key={e.id} className="text-[9px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded font-bold">+{e.name}</span>
-                                                    ))}
+
+                                            {/* Quantity + Actions Row */}
+                                            <div className="flex items-center justify-between mt-2">
+                                                <div className="flex items-center gap-3 bg-gray-50 rounded-lg p-0.5 border border-gray-100">
+                                                    <button onClick={() => updateCartItemQty(item.id, -1)} className="w-7 h-7 flex items-center justify-center rounded-md bg-white shadow-sm text-gray-600 hover:text-red-500 active:scale-95 transition-all">
+                                                        <Minus size={14} strokeWidth={3} />
+                                                    </button>
+                                                    <span className="font-black text-sm w-4 text-center">{item.quantity}</span>
+                                                    <button onClick={() => updateCartItemQty(item.id, 1)} className="w-7 h-7 flex items-center justify-center rounded-md bg-white shadow-sm text-gray-600 hover:text-green-500 active:scale-95 transition-all">
+                                                        <Plus size={14} strokeWidth={3} />
+                                                    </button>
+                                                </div>
+
+                                                <div className="flex gap-1.5">
+                                                    {isDogo && (
+                                                        <button
+                                                            onClick={() => setExpandedItem(isExpanded ? null : item.id)}
+                                                            className={cn("text-[10px] font-bold px-2 py-1 rounded-md transition-colors", isExpanded ? "bg-orange-100 text-orange-600" : "bg-gray-100 text-gray-500 hover:bg-orange-50")}
+                                                        >
+                                                            Extras {isExpanded ? <ChevronUp size={10} className="inline ml-0.5" /> : <ChevronDown size={10} className="inline ml-0.5" />}
+                                                        </button>
+                                                    )}
+                                                    <button onClick={() => removeCartItem(item.id)} className="text-red-400 hover:text-red-600 p-1 rounded transition-colors">
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Expandable Extras Panel */}
+                                            {isExpanded && isDogo && (
+                                                <div className="mt-3 pt-3 border-t border-gray-100 animate-in fade-in slide-in-from-top-1 duration-200">
+                                                    <div className="grid grid-cols-2 gap-1.5 mb-2">
+                                                        {extrasList.map(extra => {
+                                                            const isSelected = item.extras.some(e => e.id === extra.id);
+                                                            return (
+                                                                <button
+                                                                    key={extra.id}
+                                                                    onClick={() => toggleExtra(item.id, extra)}
+                                                                    className={cn(
+                                                                        "px-2 py-1.5 rounded-lg text-[11px] font-bold border transition-all text-left",
+                                                                        isSelected ? "border-orange-500 bg-orange-50 text-orange-700" : "border-gray-200 bg-white text-gray-600 hover:border-orange-300"
+                                                                    )}
+                                                                >
+                                                                    {extra.name} <span className="text-[9px] opacity-70">+${extra.price}</span>
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Notas: sin tomate, dorados..."
+                                                        value={item.notes}
+                                                        onChange={(e) => updateNotes(item.id, e.target.value)}
+                                                        className="w-full text-xs bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 outline-none focus:border-orange-400 transition-colors"
+                                                    />
                                                 </div>
                                             )}
-                                            {item.notes && <p className="text-[10px] text-amber-600 mt-1 italic">📝 {item.notes}</p>}
                                         </div>
-                                    </div>
-
-                                    {/* Quantity + Actions Row */}
-                                    <div className="flex items-center justify-between mt-2">
-                                        <div className="flex items-center gap-3 bg-gray-50 rounded-lg p-0.5 border border-gray-100">
-                                            <button onClick={() => updateCartItemQty(item.id, -1)} className="w-7 h-7 flex items-center justify-center rounded-md bg-white shadow-sm text-gray-600 hover:text-red-500 active:scale-95 transition-all">
-                                                <Minus size={14} strokeWidth={3} />
-                                            </button>
-                                            <span className="font-black text-sm w-4 text-center">{item.quantity}</span>
-                                            <button onClick={() => updateCartItemQty(item.id, 1)} className="w-7 h-7 flex items-center justify-center rounded-md bg-white shadow-sm text-gray-600 hover:text-green-500 active:scale-95 transition-all">
-                                                <Plus size={14} strokeWidth={3} />
-                                            </button>
-                                        </div>
-
-                                        <div className="flex gap-1.5">
-                                            {isDogo && (
-                                                <button
-                                                    onClick={() => setExpandedItem(isExpanded ? null : item.id)}
-                                                    className={cn("text-[10px] font-bold px-2 py-1 rounded-md transition-colors", isExpanded ? "bg-orange-100 text-orange-600" : "bg-gray-100 text-gray-500 hover:bg-orange-50")}
-                                                >
-                                                    Extras {isExpanded ? <ChevronUp size={10} className="inline ml-0.5" /> : <ChevronDown size={10} className="inline ml-0.5" />}
-                                                </button>
-                                            )}
-                                            <button onClick={() => removeCartItem(item.id)} className="text-red-400 hover:text-red-600 p-1 rounded transition-colors">
-                                                <Trash2 size={14} />
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {/* Expandable Extras Panel */}
-                                    {isExpanded && isDogo && (
-                                        <div className="mt-3 pt-3 border-t border-gray-100 animate-in fade-in slide-in-from-top-1 duration-200">
-                                            <div className="grid grid-cols-2 gap-1.5 mb-2">
-                                                {extrasList.map(extra => {
-                                                    const isSelected = item.extras.some(e => e.id === extra.id);
-                                                    return (
-                                                        <button
-                                                            key={extra.id}
-                                                            onClick={() => toggleExtra(item.id, extra)}
-                                                            className={cn(
-                                                                "px-2 py-1.5 rounded-lg text-[11px] font-bold border transition-all text-left",
-                                                                isSelected ? "border-orange-500 bg-orange-50 text-orange-700" : "border-gray-200 bg-white text-gray-600 hover:border-orange-300"
-                                                            )}
-                                                        >
-                                                            {extra.name} <span className="text-[9px] opacity-70">+${extra.price}</span>
-                                                        </button>
-                                                    );
-                                                })}
-                                            </div>
-                                            <input
-                                                type="text"
-                                                placeholder="Notas: sin tomate, dorados..."
-                                                value={item.notes}
-                                                onChange={(e) => updateNotes(item.id, e.target.value)}
-                                                className="w-full text-xs bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 outline-none focus:border-orange-400 transition-colors"
-                                            />
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })
-                    )}
-
-                    {/* Payment Method Selector (Bellow items) */}
-                    {cart.length > 0 && (
-                        <div className="mt-6 border-t border-gray-100 pt-5">
-                            <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                Método de Pago
-                            </h3>
-                            <div className="grid grid-cols-2 gap-3">
-                                <button
-                                    onClick={() => setPaymentMethod("efectivo")}
-                                    className={cn(
-                                        "py-3 rounded-2xl text-sm font-black transition-all flex flex-col items-center justify-center gap-1 group",
-                                        paymentMethod === "efectivo"
-                                            ? "bg-green-500 text-white shadow-lg shadow-green-500/30 scale-100 ring-4 ring-green-500/20"
-                                            : "bg-gray-50 border-2 border-transparent text-gray-500 hover:bg-green-50 hover:text-green-600 scale-95"
-                                    )}
-                                >
-                                    <span className={cn("text-2xl transition-transform", paymentMethod === "efectivo" && "scale-110")}>💵</span>
-                                    Efectivo
-                                </button>
-                                <button
-                                    onClick={() => setPaymentMethod("terminal")}
-                                    className={cn(
-                                        "py-3 rounded-2xl text-sm font-black transition-all flex flex-col items-center justify-center gap-1 group",
-                                        paymentMethod === "terminal"
-                                            ? "bg-blue-500 text-white shadow-lg shadow-blue-500/30 scale-100 ring-4 ring-blue-500/20"
-                                            : "bg-gray-50 border-2 border-transparent text-gray-500 hover:bg-blue-50 hover:text-blue-600 scale-95"
-                                    )}
-                                >
-                                    <span className={cn("text-2xl transition-transform", paymentMethod === "terminal" && "scale-110")}>💳</span>
-                                    Terminal
-                                </button>
+                                    );
+                                })}
                             </div>
-                        </div>
+
+                            {/* Payment Method & Checkout Block (Flows with scroll) */}
+                            <div className="mt-auto pt-6 flex flex-col gap-4">
+                                {/* Payment Selector */}
+                                <div className="border-t border-gray-100 pt-5">
+                                    <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                        Método de Pago
+                                    </h3>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <button
+                                            onClick={() => setPaymentMethod("efectivo")}
+                                            className={cn(
+                                                "py-3 rounded-2xl text-sm font-black transition-all flex flex-col items-center justify-center gap-1 group",
+                                                paymentMethod === "efectivo"
+                                                    ? "bg-green-500 text-white shadow-lg shadow-green-500/30 scale-100 ring-4 ring-green-500/20"
+                                                    : "bg-gray-50 border-2 border-transparent text-gray-500 hover:bg-green-50 hover:text-green-600 scale-95"
+                                            )}
+                                        >
+                                            <span className={cn("text-2xl transition-transform", paymentMethod === "efectivo" && "scale-110")}>💵</span>
+                                            Efectivo
+                                        </button>
+                                        <button
+                                            onClick={() => setPaymentMethod("terminal")}
+                                            className={cn(
+                                                "py-3 rounded-2xl text-sm font-black transition-all flex flex-col items-center justify-center gap-1 group",
+                                                paymentMethod === "terminal"
+                                                    ? "bg-blue-500 text-white shadow-lg shadow-blue-500/30 scale-100 ring-4 ring-blue-500/20"
+                                                    : "bg-gray-50 border-2 border-transparent text-gray-500 hover:bg-blue-50 hover:text-blue-600 scale-95"
+                                            )}
+                                        >
+                                            <span className={cn("text-2xl transition-transform", paymentMethod === "terminal" && "scale-110")}>💳</span>
+                                            Terminal
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Total and Checkout Button */}
+                                <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200 shadow-sm mt-2">
+                                    <div className="flex justify-between items-end mb-4">
+                                        <span className="text-[13px] font-black text-gray-400 uppercase tracking-widest">Total a Cobrar</span>
+                                        <span className="text-[36px] font-black text-gray-900 leading-none tracking-tighter">${totalCart}</span>
+                                    </div>
+
+                                    <button
+                                        onClick={submitOrder}
+                                        disabled={cart.length === 0}
+                                        className={cn(
+                                            "w-full font-black text-[18px] py-4 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2",
+                                            paymentMethod === "terminal"
+                                                ? "bg-blue-600 hover:bg-blue-700 text-white shadow-[0_8px_20px_-8px_rgba(37,99,235,0.6)]"
+                                                : "bg-green-600 hover:bg-green-700 text-white shadow-[0_8px_20px_-8px_rgba(22,163,74,0.6)]"
+                                        )}
+                                    >
+                                        {paymentMethod === "terminal" ? `Cobrar con Terminal` : `Cobrar en Efectivo`}
+                                    </button>
+                                </div>
+                            </div>
+                        </>
                     )}
-                </div>
-
-                {/* Cart Footer - Always Visible */}
-                <div className="p-4 border-t bg-white shrink-0 shadow-[0_-5px_20px_-10px_rgba(0,0,0,0.08)]" style={{ borderColor: T.border }}>
-                    <div className="flex justify-between items-end mb-3">
-                        <span className="text-xs font-black text-gray-400 uppercase tracking-wider">Total a Cobrar</span>
-                        <span className="text-[32px] font-black text-gray-900 leading-none">${totalCart}</span>
-                    </div>
-
-                    <button
-                        onClick={submitOrder}
-                        disabled={cart.length === 0}
-                        className={cn(
-                            "w-full font-black text-[17px] py-4 rounded-2xl transition-all active:scale-[0.98] flex items-center justify-center gap-2",
-                            cart.length > 0
-                                ? paymentMethod === "terminal"
-                                    ? "bg-blue-600 hover:bg-blue-700 text-white shadow-[0_8px_20px_-8px_rgba(37,99,235,0.6)]"
-                                    : "bg-green-600 hover:bg-green-700 text-white shadow-[0_8px_20px_-8px_rgba(22,163,74,0.6)]"
-                                : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        )}
-                    >
-                        {cart.length > 0
-                            ? paymentMethod === "terminal"
-                                ? `Cobrar con Terminal`
-                                : `Cobrar en Efectivo`
-                            : "Vacio"}
-                    </button>
                 </div>
             </div>
         </div>
