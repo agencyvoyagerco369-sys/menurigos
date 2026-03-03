@@ -37,6 +37,7 @@ export default function AdminPOS() {
     const [orderType, setOrderType] = useState<"mesa" | "domicilio">("mesa");
     const [tableNumber, setTableNumber] = useState<string>("1");
     const [customerName, setCustomerName] = useState("");
+    const [paymentMethod, setPaymentMethod] = useState<"efectivo" | "terminal">("efectivo");
 
     /* ── Upselling Banner ──────────────────── */
     const [showUpsell, setShowUpsell] = useState(false);
@@ -137,7 +138,7 @@ export default function AdminPOS() {
                 tableNumber: orderType === "mesa" ? parseInt(tableNumber) || 1 : null,
                 customerName: customerName || undefined,
                 total: totalCart,
-                paymentMethod: "efectivo",
+                paymentMethod,
             });
             toast.success("✅ Comanda #" + Math.floor(Math.random() * 9000 + 1000) + " enviada a cocina");
             setCart([]);
@@ -392,17 +393,52 @@ export default function AdminPOS() {
                         <span className="text-xs font-black text-gray-400 uppercase tracking-wider">Total</span>
                         <span className="text-3xl font-black text-orange-500 leading-none">${totalCart}</span>
                     </div>
+
+                    {/* Payment Method Selector */}
+                    {cart.length > 0 && (
+                        <div className="flex gap-2 mb-3">
+                            <button
+                                onClick={() => setPaymentMethod("efectivo")}
+                                className={cn(
+                                    "flex-1 py-2.5 rounded-xl text-sm font-bold transition-all border-2 flex items-center justify-center gap-2",
+                                    paymentMethod === "efectivo"
+                                        ? "border-green-500 bg-green-50 text-green-700 shadow-sm"
+                                        : "border-gray-200 bg-white text-gray-500 hover:border-green-300"
+                                )}
+                            >
+                                💵 Efectivo
+                            </button>
+                            <button
+                                onClick={() => setPaymentMethod("terminal")}
+                                className={cn(
+                                    "flex-1 py-2.5 rounded-xl text-sm font-bold transition-all border-2 flex items-center justify-center gap-2",
+                                    paymentMethod === "terminal"
+                                        ? "border-blue-500 bg-blue-50 text-blue-700 shadow-sm"
+                                        : "border-gray-200 bg-white text-gray-500 hover:border-blue-300"
+                                )}
+                            >
+                                💳 Terminal
+                            </button>
+                        </div>
+                    )}
+
                     <button
                         onClick={submitOrder}
                         disabled={cart.length === 0}
                         className={cn(
                             "w-full font-black text-base py-4 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2",
                             cart.length > 0
-                                ? "bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-600/30"
+                                ? paymentMethod === "terminal"
+                                    ? "bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/30"
+                                    : "bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-600/30"
                                 : "bg-gray-100 text-gray-400 cursor-not-allowed"
                         )}
                     >
-                        {cart.length > 0 ? `💰 Cobrar $${totalCart}` : "Agrega productos para cobrar"}
+                        {cart.length > 0
+                            ? paymentMethod === "terminal"
+                                ? `💳 Cobrar con Terminal $${totalCart}`
+                                : `💵 Cobrar Efectivo $${totalCart}`
+                            : "Agrega productos para cobrar"}
                     </button>
                 </div>
             </div>
