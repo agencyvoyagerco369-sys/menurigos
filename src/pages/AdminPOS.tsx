@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { products, Product } from "@/data/products";
 import { useOrders } from "@/context/OrdersContext";
 import { T } from "@/lib/admin-theme";
-import { Plus, Minus, X, ShoppingBag, UtensilsCrossed, Trash2, Search, ChevronDown, ChevronUp, Zap } from "lucide-react";
+import { Plus, Minus, X, ShoppingBag, UtensilsCrossed, Trash2, Search, ChevronDown, ChevronUp, Zap, CheckCircle2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +38,10 @@ export default function AdminPOS() {
     const [tableNumber, setTableNumber] = useState<string>("1");
     const [customerName, setCustomerName] = useState("");
     const [paymentMethod, setPaymentMethod] = useState<"efectivo" | "terminal">("efectivo");
+
+    /* ── Checkout Flow: null → "confirm" → "paid" ── */
+    const [checkoutStep, setCheckoutStep] = useState<null | "confirm" | "paid">(null);
+    const [orderNumber, setOrderNumber] = useState<string>("");
 
     /* ── Upselling Banner ──────────────────── */
     const [showUpsell, setShowUpsell] = useState(false);
@@ -117,11 +121,23 @@ export default function AdminPOS() {
         setCart([]);
     };
 
-    /** Submit order to Supabase */
-    const submitOrder = async () => {
+    /** Step 1: User clicks "Cobrar" → Show confirmation */
+    const initiateCheckout = () => {
         if (cart.length === 0) { toast.error("El carrito está vacío"); return; }
         if (orderType === "mesa" && !tableNumber) { toast.error("Ingresa el número de mesa"); return; }
+        setCheckoutStep("confirm");
+    };
 
+    /** Step 2: User confirms payment → Mark as paid */
+    const confirmPayment = () => {
+        const num = "#" + Math.floor(Math.random() * 9000 + 1000);
+        setOrderNumber(num);
+        setCheckoutStep("paid");
+        toast.success(`✅ Pago ${paymentMethod === "terminal" ? "con terminal" : "en efectivo"} registrado`);
+    };
+
+    /** Step 3: User sends to kitchen → Save to DB */
+    const sendToKitchen = async () => {
         try {
             await addOrder({
                 items: cart.map(c => ({
@@ -138,12 +154,19 @@ export default function AdminPOS() {
                 total: totalCart,
                 paymentMethod,
             });
-            toast.success("✅ Comanda #" + Math.floor(Math.random() * 9000 + 1000) + " enviada a cocina");
+            toast.success(`🍳 Comanda ${orderNumber} enviada a cocina`);
             setCart([]);
             setCustomerName("");
+            setCheckoutStep(null);
+            setOrderNumber("");
         } catch {
             toast.error("Error al enviar pedido. Intenta de nuevo.");
         }
+    };
+
+    /** Cancel checkout and go back to editing */
+    const cancelCheckout = () => {
+        setCheckoutStep(null);
     };
 
     /* ── Quick Upsell: add a drink fast ────── */
@@ -389,59 +412,123 @@ export default function AdminPOS() {
 
                             {/* Payment Method & Checkout Block (Flows with scroll) */}
                             <div className="mt-6 flex flex-col gap-4">
-                                {/* Payment Selector */}
-                                <div className="border-t border-gray-100 pt-5">
-                                    <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                        Método de Pago
-                                    </h3>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <button
-                                            onClick={() => setPaymentMethod("efectivo")}
-                                            className={cn(
-                                                "py-3 rounded-2xl text-sm font-black transition-all flex flex-col items-center justify-center gap-1 group",
-                                                paymentMethod === "efectivo"
-                                                    ? "bg-green-500 text-white shadow-lg shadow-green-500/30 scale-100 ring-4 ring-green-500/20"
-                                                    : "bg-gray-50 border-2 border-transparent text-gray-500 hover:bg-green-50 hover:text-green-600 scale-95"
-                                            )}
-                                        >
-                                            <span className={cn("text-2xl transition-transform", paymentMethod === "efectivo" && "scale-110")}>💵</span>
-                                            Efectivo
-                                        </button>
-                                        <button
-                                            onClick={() => setPaymentMethod("terminal")}
-                                            className={cn(
-                                                "py-3 rounded-2xl text-sm font-black transition-all flex flex-col items-center justify-center gap-1 group",
-                                                paymentMethod === "terminal"
-                                                    ? "bg-blue-500 text-white shadow-lg shadow-blue-500/30 scale-100 ring-4 ring-blue-500/20"
-                                                    : "bg-gray-50 border-2 border-transparent text-gray-500 hover:bg-blue-50 hover:text-blue-600 scale-95"
-                                            )}
-                                        >
-                                            <span className={cn("text-2xl transition-transform", paymentMethod === "terminal" && "scale-110")}>💳</span>
-                                            Terminal
-                                        </button>
-                                    </div>
-                                </div>
 
-                                {/* Total and Checkout Button */}
-                                <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200 shadow-sm mt-2">
-                                    <div className="flex justify-between items-end mb-4">
-                                        <span className="text-[13px] font-black text-gray-400 uppercase tracking-widest">Total a Cobrar</span>
-                                        <span className="text-[36px] font-black text-gray-900 leading-none tracking-tighter">${totalCart}</span>
-                                    </div>
+                                {/* ═══ STEP: Normal (select payment + cobrar button) ═══ */}
+                                {checkoutStep === null && (
+                                    <>
+                                        {/* Payment Selector */}
+                                        <div className="border-t border-gray-100 pt-5">
+                                            <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">
+                                                Método de Pago
+                                            </h3>
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <button
+                                                    onClick={() => setPaymentMethod("efectivo")}
+                                                    className={cn(
+                                                        "py-3 rounded-2xl text-sm font-black transition-all flex flex-col items-center justify-center gap-1",
+                                                        paymentMethod === "efectivo"
+                                                            ? "bg-green-500 text-white shadow-lg shadow-green-500/30 ring-4 ring-green-500/20"
+                                                            : "bg-gray-50 border-2 border-transparent text-gray-500 hover:bg-green-50 hover:text-green-600 scale-95"
+                                                    )}
+                                                >
+                                                    <span className={cn("text-2xl transition-transform", paymentMethod === "efectivo" && "scale-110")}>💵</span>
+                                                    Efectivo
+                                                </button>
+                                                <button
+                                                    onClick={() => setPaymentMethod("terminal")}
+                                                    className={cn(
+                                                        "py-3 rounded-2xl text-sm font-black transition-all flex flex-col items-center justify-center gap-1",
+                                                        paymentMethod === "terminal"
+                                                            ? "bg-blue-500 text-white shadow-lg shadow-blue-500/30 ring-4 ring-blue-500/20"
+                                                            : "bg-gray-50 border-2 border-transparent text-gray-500 hover:bg-blue-50 hover:text-blue-600 scale-95"
+                                                    )}
+                                                >
+                                                    <span className={cn("text-2xl transition-transform", paymentMethod === "terminal" && "scale-110")}>💳</span>
+                                                    Terminal
+                                                </button>
+                                            </div>
+                                        </div>
 
-                                    <button
-                                        onClick={submitOrder}
-                                        disabled={cart.length === 0}
-                                        className={cn(
-                                            "w-full font-black text-[18px] py-4 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2",
-                                            paymentMethod === "terminal"
-                                                ? "bg-blue-600 hover:bg-blue-700 text-white shadow-[0_8px_20px_-8px_rgba(37,99,235,0.6)]"
-                                                : "bg-green-600 hover:bg-green-700 text-white shadow-[0_8px_20px_-8px_rgba(22,163,74,0.6)]"
-                                        )}
-                                    >
-                                        {paymentMethod === "terminal" ? `Cobrar con Terminal` : `Cobrar en Efectivo`}
-                                    </button>
-                                </div>
+                                        {/* Total + Cobrar Button */}
+                                        <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200 shadow-sm">
+                                            <div className="flex justify-between items-end mb-4">
+                                                <span className="text-[13px] font-black text-gray-400 uppercase tracking-widest">Total</span>
+                                                <span className="text-[36px] font-black text-gray-900 leading-none tracking-tighter">${totalCart}</span>
+                                            </div>
+                                            <button
+                                                onClick={initiateCheckout}
+                                                className={cn(
+                                                    "w-full font-black text-[18px] py-4 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2",
+                                                    paymentMethod === "terminal"
+                                                        ? "bg-blue-600 hover:bg-blue-700 text-white shadow-[0_8px_20px_-8px_rgba(37,99,235,0.6)]"
+                                                        : "bg-green-600 hover:bg-green-700 text-white shadow-[0_8px_20px_-8px_rgba(22,163,74,0.6)]"
+                                                )}
+                                            >
+                                                {paymentMethod === "terminal" ? "Cobrar con Terminal" : "Cobrar en Efectivo"}
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
+
+                                {/* ═══ STEP: Confirm Payment ═══ */}
+                                {checkoutStep === "confirm" && (
+                                    <div className="border-t-2 border-amber-300 pt-5 animate-in fade-in slide-in-from-bottom-3 duration-300">
+                                        <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-5 text-center">
+                                            <span className="text-5xl block mb-3">
+                                                {paymentMethod === "terminal" ? "💳" : "💵"}
+                                            </span>
+                                            <h3 className="text-xl font-black text-gray-900 mb-1">Confirmar Pago</h3>
+                                            <p className="text-sm text-gray-500 font-medium mb-4">
+                                                {paymentMethod === "terminal" ? "Pago con Terminal Bancaria" : "Pago en Efectivo"}
+                                            </p>
+                                            <div className="text-[42px] font-black text-gray-900 tracking-tighter mb-5">
+                                                ${totalCart}
+                                            </div>
+
+                                            <div className="flex gap-3">
+                                                <button
+                                                    onClick={cancelCheckout}
+                                                    className="flex-1 py-3 rounded-xl border-2 border-gray-300 text-gray-600 font-bold text-sm hover:bg-gray-100 transition-all flex items-center justify-center gap-2"
+                                                >
+                                                    <ArrowLeft size={16} /> Regresar
+                                                </button>
+                                                <button
+                                                    onClick={confirmPayment}
+                                                    className={cn(
+                                                        "flex-[2] py-3 rounded-xl font-black text-base text-white transition-all active:scale-[0.98] flex items-center justify-center gap-2",
+                                                        paymentMethod === "terminal"
+                                                            ? "bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/30"
+                                                            : "bg-green-600 hover:bg-green-700 shadow-lg shadow-green-600/30"
+                                                    )}
+                                                >
+                                                    ✅ Confirmar Pago
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* ═══ STEP: Payment Done → Send to Kitchen ═══ */}
+                                {checkoutStep === "paid" && (
+                                    <div className="border-t-2 border-green-400 pt-5 animate-in fade-in slide-in-from-bottom-3 duration-300">
+                                        <div className="bg-green-50 border-2 border-green-300 rounded-2xl p-5 text-center">
+                                            <CheckCircle2 size={56} className="mx-auto text-green-500 mb-3" />
+                                            <h3 className="text-xl font-black text-green-700 mb-1">¡Pago Registrado!</h3>
+                                            <p className="text-sm text-gray-500 font-medium mb-1">
+                                                {paymentMethod === "terminal" ? "💳 Terminal Bancaria" : "💵 Efectivo"} — <span className="font-black text-gray-900">${totalCart}</span>
+                                            </p>
+                                            <p className="text-xs text-gray-400 mb-5">Comanda {orderNumber}</p>
+
+                                            <button
+                                                onClick={sendToKitchen}
+                                                className="w-full py-4 rounded-xl font-black text-[18px] bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/30 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                                            >
+                                                🍳 Enviar Pedido a Cocina
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
                             </div>
                         </>
                     )}
