@@ -30,8 +30,8 @@ const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [time, setTime] = useState(new Date());
 
-  const hasActiveOrders = orders.some((o) => o.status !== "entregado");
-  const activeCount = orders.filter((o) => o.status !== "entregado").length;
+  const hasActiveOrders = orders.some((o) => o.status !== "entregado" && o.status !== "cancelado");
+  const activeCount = orders.filter((o) => o.status !== "entregado" && o.status !== "cancelado").length;
 
   useEffect(() => {
     if (!loading && !user) navigate("/admin");
@@ -46,28 +46,48 @@ const AdminLayout = () => {
   const prevOrderCountRef = useRef(orders.length);
   const audioContextRef = useRef<AudioContext | null>(null);
 
+  const getAudioCtx = useCallback(() => {
+    if (!audioContextRef.current) audioContextRef.current = new AudioContext();
+    const ctx = audioContextRef.current;
+    if (ctx.state === "suspended") ctx.resume();
+    return ctx;
+  }, []);
+
+  // Resume AudioContext on first user interaction (browser policy)
+  useEffect(() => {
+    const resume = () => { if (audioContextRef.current?.state === "suspended") audioContextRef.current.resume(); };
+    document.addEventListener("click", resume, { once: true });
+    document.addEventListener("keydown", resume, { once: true });
+    return () => { document.removeEventListener("click", resume); document.removeEventListener("keydown", resume); };
+  }, []);
+
   const playNotificationSound = useCallback(() => {
     try {
-      if (!audioContextRef.current) audioContextRef.current = new AudioContext();
-      const ctx = audioContextRef.current;
+      const ctx = getAudioCtx();
       const now = ctx.currentTime;
-      [0, 0.15].forEach((delay, i) => {
+      // 3-tone doorbell chime: ding-dong-ding
+      const tones = [
+        { freq: 830, delay: 0, dur: 0.35, vol: 0.5 },
+        { freq: 1100, delay: 0.2, dur: 0.35, vol: 0.5 },
+        { freq: 1320, delay: 0.4, dur: 0.5, vol: 0.6 },
+      ];
+      tones.forEach(({ freq, delay, dur, vol }) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.type = "sine";
-        osc.frequency.value = i === 0 ? 830 : 1100;
-        gain.gain.setValueAtTime(0.3, now + delay);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.4);
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(vol, now + delay);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + delay + dur);
         osc.start(now + delay);
-        osc.stop(now + delay + 0.4);
+        osc.stop(now + delay + dur);
       });
       if ("Notification" in window && Notification.permission === "granted") {
         new Notification("🛎 Nuevo pedido en Rigo's", { body: "Tienes un nuevo pedido por atender." });
       }
     } catch (e) { console.warn("Could not play notification sound:", e); }
-  }, []);
+  }, [getAudioCtx]);
 
   useEffect(() => {
     if ("Notification" in window && Notification.permission === "default") Notification.requestPermission();
