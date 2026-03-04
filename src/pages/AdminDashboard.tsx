@@ -10,7 +10,7 @@ const AdminDashboard = () => {
   const { orders } = useOrders();
   const navigate = useNavigate();
 
-  const active = orders.filter((o) => o.status !== "entregado");
+  const active = orders.filter((o) => o.status !== "entregado" && o.status !== "cancelado");
   const received = orders.filter((o) => o.status === "recibido").length;
   const preparing = orders.filter((o) => o.status === "preparando").length;
   const ready = orders.filter((o) => o.status === "listo").length;
