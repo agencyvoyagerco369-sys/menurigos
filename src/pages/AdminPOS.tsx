@@ -450,23 +450,28 @@ export default function AdminPOS() {
                                         </div>
 
                                         {/* Total + Cobrar Button */}
-                                        <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200 shadow-sm">
-                                            <div className="flex justify-between items-end mb-4">
-                                                <span className="text-[13px] font-black text-gray-400 uppercase tracking-widest">Total</span>
-                                                <span className="text-[36px] font-black text-gray-900 leading-none tracking-tighter">${totalCart}</span>
+                                        <button
+                                            onClick={initiateCheckout}
+                                            className={cn(
+                                                "w-full p-4 rounded-2xl border transition-all active:scale-[0.98] shadow-sm flex flex-col justify-center text-left",
+                                                paymentMethod === "terminal"
+                                                    ? "bg-blue-600 hover:bg-blue-700 border-blue-700 text-white shadow-[0_8px_20px_-8px_rgba(37,99,235,0.6)]"
+                                                    : "bg-green-600 hover:bg-green-700 border-green-700 text-white shadow-[0_8px_20px_-8px_rgba(22,163,74,0.6)]"
+                                            )}
+                                        >
+                                            <div className="flex justify-between items-end mb-1 w-full opacity-90">
+                                                <span className="text-[13px] font-black uppercase tracking-widest">Total a Cobrar</span>
+                                                <span className="text-[36px] font-black leading-none tracking-tighter">${totalCart}</span>
                                             </div>
-                                            <button
-                                                onClick={initiateCheckout}
-                                                className={cn(
-                                                    "w-full font-black text-[18px] py-4 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2",
-                                                    paymentMethod === "terminal"
-                                                        ? "bg-blue-600 hover:bg-blue-700 text-white shadow-[0_8px_20px_-8px_rgba(37,99,235,0.6)]"
-                                                        : "bg-green-600 hover:bg-green-700 text-white shadow-[0_8px_20px_-8px_rgba(22,163,74,0.6)]"
-                                                )}
-                                            >
-                                                {paymentMethod === "terminal" ? "Cobrar con Terminal" : "Cobrar en Efectivo"}
-                                            </button>
-                                        </div>
+                                            <div className="w-full flex items-center justify-between mt-2 pt-3 border-t border-white/20">
+                                                <span className="text-[14px] font-bold flex items-center gap-1.5">
+                                                    {paymentMethod === "terminal" ? "💳 Cobro Terminal" : "💵 Cobro Efectivo"}
+                                                </span>
+                                                <span className="text-[12px] font-bold bg-white/20 px-2.5 py-1 rounded-lg">
+                                                    Clic para confirmar ➔
+                                                </span>
+                                            </div>
+                                        </button>
                                     </>
                                 )}
 
@@ -501,7 +506,7 @@ export default function AdminPOS() {
                                                             : "bg-green-600 hover:bg-green-700 shadow-lg shadow-green-600/30"
                                                     )}
                                                 >
-                                                    ✅ Confirmar Pago
+                                                    <CheckCircle2 size={20} strokeWidth={2.5} /> Pago Realizado
                                                 </button>
                                             </div>
                                         </div>
@@ -521,9 +526,9 @@ export default function AdminPOS() {
 
                                             <button
                                                 onClick={sendToKitchen}
-                                                className="w-full py-4 rounded-xl font-black text-[18px] bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/30 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                                                className="w-full py-4 rounded-xl font-black text-[15.5px] bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/30 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
                                             >
-                                                🍳 Enviar Pedido a Cocina
+                                                <UtensilsCrossed size={18} strokeWidth={2.5} /> Enviar a cocina y mover a activos
                                             </button>
                                         </div>
                                     </div>
