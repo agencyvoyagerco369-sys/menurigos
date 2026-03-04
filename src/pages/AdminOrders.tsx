@@ -1,4 +1,5 @@
 import { useOrders, Order, OrderStatus } from "@/context/OrdersContext";
+import { XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { T, STATUS as STATE_COLORS, MESA_COLORS } from "@/lib/admin-theme";
 import {
@@ -6,7 +7,7 @@ import {
   ShoppingCart, TrendingUp, Zap, Receipt, Phone, User, Navigation,
   MessageSquare, Home, Building2, AlertTriangle,
   ArrowUpRight, Hash, ExternalLink,
-  UtensilsCrossed, BadgeDollarSign, ClipboardList, Bell, Eye, Package,
+  UtensilsCrossed, BadgeDollarSign, ClipboardList, Bell, Eye, Package, Trash2,
 } from "lucide-react";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -40,6 +41,7 @@ const STATUS_ICONS: Record<OrderStatus, React.ElementType> = {
   preparando: ChefHat,
   listo: CheckCircle2,
   entregado: Package,
+  cancelado: XCircle,
 };
 
 /* ═══════════════════ STATUS BADGE ═══════════════════ */
@@ -59,17 +61,13 @@ const StatusBadge = ({ status }: { status: OrderStatus }) => {
 const UrgencyBadge = ({ minutes }: { minutes: number }) => {
   if (minutes < 10) return null;
   if (minutes >= 20) return (
-    <motion.span animate={{ opacity: [1, 0.7, 1] }} transition={{ repeat: Infinity, duration: 2 }}
-      className="inline-flex items-center gap-1 rounded px-2 py-1 text-[11px] font-bold font-pos uppercase tracking-wide"
-      style={{ background: "rgba(212,43,43,0.2)", color: "#F87171" }}>
-      <AlertTriangle size={11} strokeWidth={2} /> URGENTE
-    </motion.span>
+    <motion.div animate={{ opacity: [1, 0.7, 1] }} transition={{ repeat: Infinity, duration: 2 }}
+      className="absolute top-0 left-0 right-0 h-1.5 z-20"
+      style={{ background: "#EF4444" }} />
   );
   return (
-    <span className="inline-flex items-center gap-1 rounded px-2 py-1 text-[11px] font-bold font-pos uppercase tracking-wide"
-      style={{ background: "rgba(245,158,11,0.15)", color: "#FBBF24" }}>
-      <AlertTriangle size={11} strokeWidth={2} /> +10 min
-    </span>
+    <div className="absolute top-0 left-0 right-0 h-1.5 z-20"
+      style={{ background: "#FBBF24" }} />
   );
 };
 
@@ -148,9 +146,13 @@ const OrderItemsList = ({ items }: { items: Order["items"] }) => (
               </div>
             )}
             {item.notes && (
-              <p className="mt-1.5 flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-pos font-medium bg-amber-50 text-amber-700">
-                <MessageSquare size={12} strokeWidth={2.5} /> {item.notes}
-              </p>
+              <div className="mt-2.5 flex items-start gap-2 rounded-lg p-2.5 shadow-sm transform -rotate-1 relative" style={{ background: "#FEF9C3", border: "1px solid #FEF08A" }}>
+                <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-8 h-3 bg-[#EAB308]/20 rounded-full" />
+                <MessageSquare size={14} strokeWidth={2.5} className="text-[#A16207] shrink-0 mt-0.5" />
+                <p className="text-[12px] font-pos text-[#713F12] font-semibold leading-tight">
+                  {item.notes}
+                </p>
+              </div>
             )}
           </div>
         </div>
@@ -163,7 +165,7 @@ const OrderItemsList = ({ items }: { items: Order["items"] }) => (
 );
 
 /* ═══════════════════ ACTION BUTTONS ═══════════════════ */
-const ActionButtons = ({ order, onAction, isDelivery }: { order: Order; onAction: (id: string, status: OrderStatus) => void; isDelivery?: boolean }) => {
+const ActionButtons = ({ order, onAction, onCancel, isDelivery }: { order: Order; onAction: (id: string, status: OrderStatus) => void; onCancel: (order: Order) => void; isDelivery?: boolean }) => {
   const btnBase = "flex flex-1 items-center justify-center gap-2 rounded-lg py-3.5 text-sm font-bold font-pos tracking-wide uppercase transition-all duration-150 active:scale-[0.97] shadow-sm";
   return (
     <div className="flex gap-2.5">
@@ -185,9 +187,62 @@ const ActionButtons = ({ order, onAction, isDelivery }: { order: Order; onAction
           <Package size={18} strokeWidth={2.5} /> {isDelivery ? "Marcar Entregado" : order.paymentMethod ? "✅ Entregar" : "Cobrar y Entregar"}
         </button>
       )}
+      {/* Cancel button */}
+      <button onClick={() => onCancel(order)}
+        className="flex items-center justify-center gap-1.5 rounded-lg px-4 py-3.5 text-sm font-bold font-pos tracking-wide uppercase transition-all duration-150 active:scale-[0.97] shadow-sm hover:brightness-110"
+        style={{ background: "rgba(239,68,68,0.12)", color: "#EF4444", border: "1px solid rgba(239,68,68,0.25)" }}>
+        <Trash2 size={16} strokeWidth={2.5} />
+      </button>
     </div>
   );
 };
+
+/* ═══════════════════ CANCEL DIALOG ═══════════════════ */
+const CancelDialog = ({ order, onConfirm, onClose }: {
+  order: Order; onConfirm: () => void; onClose: () => void;
+}) => (
+  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+    className="fixed inset-0 z-[100] flex items-center justify-center" style={{ background: "#00000070", backdropFilter: "blur(8px)" }} onClick={onClose}>
+    <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
+      className="relative mx-4 w-full max-w-md overflow-hidden rounded-xl p-8 font-pos"
+      style={{ background: P.card, border: `1px solid ${P.border}`, boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5)" }} onClick={e => e.stopPropagation()}>
+      <button onClick={onClose} className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-lg transition-colors"
+        style={{ color: P.textMuted }}
+        onMouseEnter={(e) => e.currentTarget.style.background = "rgba(0,0,0,0.05)"}
+        onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
+        <X size={18} strokeWidth={2} />
+      </button>
+
+      <div className="mb-8 text-center">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-xl" style={{ background: "rgba(239,68,68,0.15)" }}>
+          <AlertTriangle size={32} style={{ color: "#EF4444" }} />
+        </div>
+        <h3 className="text-2xl font-extrabold font-pos" style={{ color: P.text }}>¿Cancelar Pedido?</h3>
+        <p className="mt-2 font-pos-mono text-sm" style={{ color: P.textMuted }}>
+          #{order.id.slice(0, 8)} · {order.orderType === "mesa" ? `Mesa ${order.tableNumber}` : "Domicilio"}
+        </p>
+        <p className="mt-3 text-sm font-medium font-pos" style={{ color: P.textMuted }}>
+          Esta acción no se puede deshacer. El pedido será marcado como cancelado.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <button onClick={onClose}
+          className="flex items-center justify-center gap-2 rounded-xl py-4 text-sm font-bold font-pos uppercase tracking-wide transition-all duration-150 hover:shadow-md active:scale-[0.98]"
+          style={{ background: P.surface, border: `2px solid ${P.border}`, color: P.text }}
+          onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#10B981"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.borderColor = P.border; }}>
+          No, Mantener
+        </button>
+        <button onClick={onConfirm}
+          className="flex items-center justify-center gap-2 rounded-xl py-4 text-sm font-bold font-pos uppercase tracking-wide text-white transition-all duration-150 hover:brightness-110 active:scale-[0.98]"
+          style={{ background: "#EF4444" }}>
+          <Trash2 size={16} strokeWidth={2.5} /> Sí, Cancelar
+        </button>
+      </div>
+    </motion.div>
+  </motion.div>
+);
 
 /* ═══════════════════ PAYMENT DIALOG ═══════════════════ */
 const PaymentDialog = ({ order, onConfirm, onClose }: {
@@ -249,10 +304,10 @@ const PaymentDialog = ({ order, onConfirm, onClose }: {
 );
 
 /* ═══════════════════ ORDER CARD ═══════════════════ */
-const OrderCard = ({ order, onAction, isDelivery }: { order: Order; onAction: (id: string, status: OrderStatus) => void; isDelivery?: boolean }) => {
+const OrderCard = ({ order, onAction, onCancel, isDelivery }: { order: Order; onAction: (id: string, status: OrderStatus) => void; onCancel: (order: Order) => void; isDelivery?: boolean }) => {
   const elapsed = useElapsed(order.createdAt);
   const mins = Math.floor(elapsed / 60);
-  const isDone = order.status === "entregado";
+  const isDone = order.status === "entregado" || order.status === "cancelado";
   const c = STATE_COLORS[order.status];
   const dd = order.deliveryDetails;
 
@@ -271,13 +326,16 @@ const OrderCard = ({ order, onAction, isDelivery }: { order: Order; onAction: (i
         boxShadow: `0 4px 20px rgba(0,0,0,0.2), 0 0 0 0px ${c.hex}20`,
       }}>
 
+      {!isDone && <UrgencyBadge minutes={mins} />}
+
       {/* HEADER */}
       <div className="flex items-center justify-between px-4 py-3"
         style={{ borderBottom: `1px solid ${P.border}` }}>
         <div className="flex items-center gap-3">
           {isDelivery ? (
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl" style={{ background: "rgba(124,58,237,0.15)" }}>
-              <Truck size={22} strokeWidth={2} style={{ color: "#A78BFA" }} />
+            <div className="flex items-center gap-2 rounded-xl px-3 py-1.5" style={{ background: "rgba(124,58,237,0.15)", border: "1px solid rgba(124,58,237,0.3)" }}>
+              <Truck size={24} strokeWidth={2} style={{ color: "#8B5CF6" }} />
+              <span className="text-sm font-black font-pos uppercase tracking-widest text-[#8B5CF6]">Envío</span>
             </div>
           ) : (
             <MesaAvatar num={order.tableNumber || 0} />
@@ -299,7 +357,6 @@ const OrderCard = ({ order, onAction, isDelivery }: { order: Order; onAction: (i
         </div>
         <div className="flex flex-col items-end gap-1.5">
           <div className="flex items-center gap-2">
-            {!isDone && <UrgencyBadge minutes={mins} />}
             {order.paymentMethod && (
               <span className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider" style={{ background: "#D1FAE5", color: "#065F46", border: "1px solid #A7F3D0" }}>
                 💰 Pagado {order.paymentMethod === "terminal" ? "(Terminal)" : "(Efectivo)"}
@@ -396,7 +453,13 @@ const OrderCard = ({ order, onAction, isDelivery }: { order: Order; onAction: (i
           )}
 
           {/* Actions */}
-          {!isDone && <ActionButtons order={order} onAction={onAction} isDelivery={isDelivery} />}
+          {order.status === "cancelado" && (
+            <div className="flex items-center justify-center gap-2 rounded-lg py-3 text-sm font-bold font-pos uppercase tracking-wide"
+              style={{ background: "rgba(239,68,68,0.1)", color: "#EF4444", border: "1px solid rgba(239,68,68,0.2)" }}>
+              <XCircle size={16} strokeWidth={2.5} /> Pedido Cancelado
+            </div>
+          )}
+          {!isDone && <ActionButtons order={order} onAction={onAction} onCancel={onCancel} isDelivery={isDelivery} />}
         </div>
       </div>
     </motion.div>
@@ -454,9 +517,10 @@ const EmptyPanel = ({ type }: { type: "mesas" | "domicilio" }) => (
 
 /* ═══════════════════ MAIN PAGE ═══════════════════ */
 const AdminOrders = () => {
-  const { orders, updateOrderStatus } = useOrders();
+  const { orders, updateOrderStatus, cancelOrder } = useOrders();
   const [viewMode, setViewMode] = useState<ViewMode>("todo");
   const [paymentOrder, setPaymentOrder] = useState<Order | null>(null);
+  const [cancellingOrder, setCancellingOrder] = useState<Order | null>(null);
 
   const handleAction = useCallback((id: string, status: OrderStatus) => {
     if (status === "entregado") {
@@ -470,13 +534,21 @@ const AdminOrders = () => {
     if (paymentOrder) { updateOrderStatus(paymentOrder.id, "entregado"); setPaymentOrder(null); }
   }, [paymentOrder, updateOrderStatus]);
 
+  const handleCancelRequest = useCallback((order: Order) => {
+    setCancellingOrder(order);
+  }, []);
+
+  const handleCancelConfirm = useCallback(() => {
+    if (cancellingOrder) { cancelOrder(cancellingOrder.id); setCancellingOrder(null); }
+  }, [cancellingOrder, cancelOrder]);
+
   const sortOld = (l: Order[]) => [...l].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
   const sortNew = (l: Order[]) => [...l].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
   const mesaOrders = useMemo(() => orders.filter((o) => o.orderType === "mesa"), [orders]);
   const deliveryOrders = useMemo(() => orders.filter((o) => o.orderType === "domicilio"), [orders]);
-  const activeMesa = mesaOrders.filter((o) => o.status !== "entregado").length;
-  const activeDelivery = deliveryOrders.filter((o) => o.status !== "entregado").length;
+  const activeMesa = mesaOrders.filter((o) => o.status !== "entregado" && o.status !== "cancelado").length;
+  const activeDelivery = deliveryOrders.filter((o) => o.status !== "entregado" && o.status !== "cancelado").length;
   const totalActive = activeMesa + activeDelivery;
   const totalRevenue = orders.reduce((s, o) => s + o.total, 0);
   const avgTicket = orders.length > 0 ? Math.round(totalRevenue / orders.length) : 0;
@@ -486,12 +558,13 @@ const AdminOrders = () => {
     preparando: sortOld(list.filter((o) => o.status === "preparando")),
     listo: sortOld(list.filter((o) => o.status === "listo")),
     entregado: sortNew(list.filter((o) => o.status === "entregado")).slice(0, 5),
+    cancelado: sortNew(list.filter((o) => o.status === "cancelado")).slice(0, 5),
   }), []);
 
   const mesaG = useMemo(() => group(mesaOrders), [mesaOrders, group]);
   const delG = useMemo(() => group(deliveryOrders), [deliveryOrders, group]);
   const ACTIVE: OrderStatus[] = ["recibido", "preparando", "listo"];
-  const ALL: OrderStatus[] = ["recibido", "preparando", "listo", "entregado"];
+  const ALL: OrderStatus[] = ["recibido", "preparando", "listo", "entregado", "cancelado"];
 
   const tabs: { key: ViewMode; label: string; icon: React.ElementType; count: number }[] = [
     { key: "todo", label: "Vista Completa", icon: Eye, count: totalActive },
@@ -557,7 +630,7 @@ const AdminOrders = () => {
                 </button>
               </div>
               {activeMesa === 0 && mesaOrders.filter(o => o.status === "entregado").length === 0 ? <EmptyPanel type="mesas" /> : (
-                <div className="space-y-5">{ACTIVE.map((s) => <KanbanCol key={s} status={s} orders={mesaG[s]} renderCard={(o) => <OrderCard order={o} onAction={handleAction} />} />)}</div>
+                <div className="space-y-5">{ACTIVE.map((s) => <KanbanCol key={s} status={s} orders={mesaG[s]} renderCard={(o) => <OrderCard order={o} onAction={handleAction} onCancel={handleCancelRequest} />} />)}</div>
               )}
             </section>
 
@@ -579,7 +652,7 @@ const AdminOrders = () => {
                 </button>
               </div>
               {activeDelivery === 0 && deliveryOrders.filter(o => o.status === "entregado").length === 0 ? <EmptyPanel type="domicilio" /> : (
-                <div className="space-y-5">{ACTIVE.map((s) => <KanbanCol key={s} status={s} orders={delG[s]} renderCard={(o) => <OrderCard order={o} onAction={handleAction} isDelivery />} />)}</div>
+                <div className="space-y-5">{ACTIVE.map((s) => <KanbanCol key={s} status={s} orders={delG[s]} renderCard={(o) => <OrderCard order={o} onAction={handleAction} onCancel={handleCancelRequest} isDelivery />} />)}</div>
               )}
             </section>
           </div>
@@ -588,7 +661,7 @@ const AdminOrders = () => {
         {viewMode === "mesas" && (
           activeMesa === 0 && mesaOrders.filter(o => o.status === "entregado").length === 0 ? <EmptyPanel type="mesas" /> : (
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-              {ALL.map((s) => <KanbanCol key={s} status={s} orders={mesaG[s]} renderCard={(o) => <OrderCard order={o} onAction={handleAction} />} />)}
+              {ALL.map((s) => <KanbanCol key={s} status={s} orders={mesaG[s]} renderCard={(o) => <OrderCard order={o} onAction={handleAction} onCancel={handleCancelRequest} />} />)}
             </div>
           )
         )}
@@ -596,13 +669,14 @@ const AdminOrders = () => {
         {viewMode === "domicilio" && (
           activeDelivery === 0 && deliveryOrders.filter(o => o.status === "entregado").length === 0 ? <EmptyPanel type="domicilio" /> : (
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-              {ALL.map((s) => <KanbanCol key={s} status={s} orders={delG[s]} renderCard={(o) => <OrderCard order={o} onAction={handleAction} isDelivery />} />)}
+              {ALL.map((s) => <KanbanCol key={s} status={s} orders={delG[s]} renderCard={(o) => <OrderCard order={o} onAction={handleAction} onCancel={handleCancelRequest} isDelivery />} />)}
             </div>
           )
         )}
 
         <AnimatePresence>
           {paymentOrder && <PaymentDialog order={paymentOrder} onConfirm={handlePaymentConfirm} onClose={() => setPaymentOrder(null)} />}
+          {cancellingOrder && <CancelDialog order={cancellingOrder} onConfirm={handleCancelConfirm} onClose={() => setCancellingOrder(null)} />}
         </AnimatePresence>
       </div>
     </div>
