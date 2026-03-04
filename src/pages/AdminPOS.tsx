@@ -507,22 +507,25 @@ export default function AdminPOS() {
                                 {/* ═══ STEP: Payment Done → Send to Kitchen ═══ */}
                                 {checkoutStep === "paid" && (
                                     <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                        <div className="bg-white rounded-[32px] p-8 text-center border border-gray-100">
-                                            <div className="mx-auto w-16 h-16 rounded-full border-[2px] border-gray-800 flex items-center justify-center mb-5">
-                                                <CheckCircle2 size={32} className="text-gray-800" strokeWidth={2} />
+                                        <div className="bg-white p-6 text-center border border-gray-100 rounded-md">
+                                            <div className="flex justify-center mb-8">
+                                                <CheckCircle2 size={44} className="text-gray-800" strokeWidth={1.5} />
                                             </div>
-                                            <h3 className="text-[22px] font-normal text-gray-900 mb-3">¡Pago Registrado!</h3>
-                                            <div className="flex items-center justify-center gap-2 text-[14px] text-gray-600 mb-2">
-                                                <div className={cn("inline-flex p-1 rounded-md", paymentMethod === "terminal" ? "bg-blue-50 text-blue-600" : "bg-green-50 text-green-600")}>
-                                                    {paymentMethod === "terminal" ? <CreditCard size={14} /> : <Wallet size={14} />}
-                                                </div>
-                                                <span className="tracking-tight">Efectivo — ${totalCart}</span>
+
+                                            <h3 className="text-xl font-normal text-gray-800 mb-6 tracking-normal">¡Pago Registrado!</h3>
+
+                                            <div className="flex items-center justify-center gap-3 text-[17px] text-gray-800 mb-4">
+                                                {paymentMethod === "terminal" ? <CreditCard size={18} strokeWidth={1.5} /> : <Wallet size={18} strokeWidth={1.5} />}
+                                                <span className="font-normal tracking-tight">
+                                                    {paymentMethod === "terminal" ? "Terminal" : "Efectivo"} — ${totalCart}
+                                                </span>
                                             </div>
-                                            <p className="text-[13px] text-gray-400 mb-8">Comanda #{orderNumber}</p>
+
+                                            <p className="text-[14px] text-gray-600 mb-10">Comanda ##{orderNumber}</p>
 
                                             <button
                                                 onClick={sendToKitchen}
-                                                className="w-full py-4 rounded-[20px] font-medium text-[14px] bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-all active:scale-[0.98]"
+                                                className="w-full py-5 border border-gray-200 bg-white text-[16px] text-gray-800 font-normal hover:bg-gray-50 transition-all active:scale-[0.98] rounded-sm"
                                             >
                                                 Enviar a cocina y mover a activos
                                             </button>
