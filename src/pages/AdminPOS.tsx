@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { products, Product } from "@/data/products";
 import { useOrders } from "@/context/OrdersContext";
 import { T } from "@/lib/admin-theme";
-import { Plus, Minus, X, ShoppingBag, UtensilsCrossed, Trash2, Search, ChevronDown, ChevronUp, Zap, CheckCircle2, ArrowLeft } from "lucide-react";
+import { Plus, Minus, X, ShoppingBag, UtensilsCrossed, Trash2, Search, ChevronDown, ChevronUp, Zap, CheckCircle2, ArrowLeft, Wallet, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -421,44 +421,50 @@ export default function AdminPOS() {
                                             <button
                                                 onClick={() => setPaymentMethod("efectivo")}
                                                 className={cn(
-                                                    "py-5 rounded-2xl flex flex-col items-center justify-center gap-3 transition-all",
+                                                    "py-5 rounded-3xl flex flex-col items-center justify-center gap-3 transition-all",
                                                     paymentMethod === "efectivo"
                                                         ? "bg-white border-2 border-green-500 shadow-sm"
-                                                        : "bg-white border border-gray-100 shadow-[0_4px_12px_-4px_rgba(0,0,0,0.05)] text-gray-600 hover:border-green-200"
+                                                        : "bg-white border border-gray-100 text-gray-500 hover:border-gray-200"
                                                 )}
                                             >
-                                                <span className="text-3xl">💵</span>
-                                                <span className="text-sm font-medium">Efectivo</span>
+                                                <div className={cn("p-2 rounded-xl", paymentMethod === "efectivo" ? "bg-green-50 text-green-600" : "bg-gray-50 text-gray-400")}>
+                                                    <Wallet size={24} strokeWidth={2} />
+                                                </div>
+                                                <span className="text-[13px] font-medium tracking-tight">Efectivo</span>
                                             </button>
                                             <button
                                                 onClick={() => setPaymentMethod("terminal")}
                                                 className={cn(
-                                                    "py-5 rounded-2xl flex flex-col items-center justify-center gap-3 transition-all",
+                                                    "py-5 rounded-3xl flex flex-col items-center justify-center gap-3 transition-all",
                                                     paymentMethod === "terminal"
                                                         ? "bg-white border-2 border-blue-500 shadow-sm"
-                                                        : "bg-white border border-gray-100 shadow-[0_4px_12px_-4px_rgba(0,0,0,0.05)] text-gray-600 hover:border-blue-200"
+                                                        : "bg-white border border-gray-100 text-gray-500 hover:border-gray-200"
                                                 )}
                                             >
-                                                <span className="text-3xl">💳</span>
-                                                <span className="text-sm font-medium">Terminal</span>
+                                                <div className={cn("p-2 rounded-xl", paymentMethod === "terminal" ? "bg-blue-50 text-blue-600" : "bg-gray-50 text-gray-400")}>
+                                                    <CreditCard size={24} strokeWidth={2} />
+                                                </div>
+                                                <span className="text-[13px] font-medium tracking-tight">Terminal</span>
                                             </button>
                                         </div>
 
                                         {/* Total + Cobrar Button */}
-                                        <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_4px_20px_-8px_rgba(0,0,0,0.08)] p-1 overflow-hidden">
-                                            <div className="flex justify-between items-center px-4 py-4">
-                                                <span className="text-[13px] font-medium text-gray-500 uppercase tracking-widest">Total</span>
-                                                <span className="text-2xl font-medium text-gray-900">${totalCart}</span>
+                                        <div className="bg-white rounded-[24px] border border-gray-100 p-1">
+                                            <div className="flex justify-between items-center px-5 py-4">
+                                                <span className="text-[12px] font-semibold text-gray-500 tracking-widest">TOTAL</span>
+                                                <span className="text-[22px] font-normal text-gray-900">${totalCart}</span>
                                             </div>
-                                            <button
-                                                onClick={initiateCheckout}
-                                                className={cn(
-                                                    "w-full py-4 rounded-xl font-medium text-base text-white transition-all active:scale-[0.98] shadow-sm",
-                                                    paymentMethod === "terminal" ? "bg-blue-500 hover:bg-blue-600" : "bg-green-500 hover:bg-green-600"
-                                                )}
-                                            >
-                                                Cobrar
-                                            </button>
+                                            <div className="px-1 pb-1">
+                                                <button
+                                                    onClick={initiateCheckout}
+                                                    className={cn(
+                                                        "w-full py-4 rounded-[20px] font-medium text-[15px] text-white transition-all active:scale-[0.98]",
+                                                        paymentMethod === "terminal" ? "bg-blue-500" : "bg-green-500"
+                                                    )}
+                                                >
+                                                    Cobrar
+                                                </button>
+                                            </div>
                                         </div>
                                     </>
                                 )}
@@ -466,25 +472,29 @@ export default function AdminPOS() {
                                 {/* ═══ STEP: Confirm Payment ═══ */}
                                 {checkoutStep === "confirm" && (
                                     <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                        <div className="bg-white rounded-[24px] p-6 text-center border border-gray-100 shadow-[0_4px_24px_-8px_rgba(0,0,0,0.08)]">
-                                            <div className="text-[52px] mb-2">{paymentMethod === "terminal" ? "💳" : "💵"}</div>
-                                            <h3 className="text-xl font-medium text-gray-900 mb-0.5">Confirmar Pago</h3>
-                                            <p className="text-[15px] text-gray-600 mb-4 tracking-tight">Pago en {paymentMethod === "terminal" ? "Terminal" : "Efectivo"}</p>
+                                        <div className="bg-white rounded-[32px] p-8 text-center border border-gray-100">
+                                            <div className="flex justify-center mb-6">
+                                                <div className={cn("p-4 rounded-2xl", paymentMethod === "terminal" ? "bg-blue-50 text-blue-600" : "bg-green-50 text-green-600")}>
+                                                    {paymentMethod === "terminal" ? <CreditCard size={32} strokeWidth={1.5} /> : <Wallet size={32} strokeWidth={1.5} />}
+                                                </div>
+                                            </div>
+                                            <h3 className="text-xl font-normal text-gray-900 mb-1">Confirmar Pago</h3>
+                                            <p className="text-[14px] text-gray-500 mb-8">Pago en {paymentMethod === "terminal" ? "Terminal" : "Efectivo"}</p>
 
-                                            <div className="text-[28px] font-normal text-gray-900 mb-6">${totalCart}</div>
+                                            <div className="text-[26px] font-normal text-gray-900 mb-10">${totalCart}</div>
 
                                             <div className="flex gap-2.5">
                                                 <button
                                                     onClick={cancelCheckout}
-                                                    className="flex-shrink-0 px-4 rounded-xl border border-gray-200 text-gray-700 font-medium text-[15px] hover:bg-gray-50 transition-all flex items-center justify-center gap-1.5"
+                                                    className="flex-shrink-0 px-5 rounded-[20px] border border-gray-200 text-gray-700 font-medium text-[14px] hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
                                                 >
-                                                    <ArrowLeft size={16} /> Regresar
+                                                    <ArrowLeft size={16} strokeWidth={2} /> Regresar
                                                 </button>
                                                 <button
                                                     onClick={confirmPayment}
                                                     className={cn(
-                                                        "flex-1 py-3.5 rounded-xl font-medium text-[15px] text-white transition-all active:scale-[0.98] flex items-center justify-center shadow-sm",
-                                                        paymentMethod === "terminal" ? "bg-blue-500 hover:bg-blue-600" : "bg-green-500 hover:bg-green-600"
+                                                        "flex-1 py-4 rounded-[20px] font-medium text-[14px] text-white transition-all active:scale-[0.98]",
+                                                        paymentMethod === "terminal" ? "bg-blue-500" : "bg-green-500"
                                                     )}
                                                 >
                                                     Confirmar
@@ -497,20 +507,22 @@ export default function AdminPOS() {
                                 {/* ═══ STEP: Payment Done → Send to Kitchen ═══ */}
                                 {checkoutStep === "paid" && (
                                     <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                        <div className="bg-white rounded-[24px] p-6 text-center border border-gray-100 shadow-[0_4px_24px_-8px_rgba(0,0,0,0.08)]">
-                                            <div className="mx-auto w-14 h-14 rounded-full border-[3px] border-gray-800 flex items-center justify-center mb-3">
-                                                <CheckCircle2 size={28} className="text-gray-800" strokeWidth={3} />
+                                        <div className="bg-white rounded-[32px] p-8 text-center border border-gray-100">
+                                            <div className="mx-auto w-16 h-16 rounded-full border-[2px] border-gray-800 flex items-center justify-center mb-5">
+                                                <CheckCircle2 size={32} className="text-gray-800" strokeWidth={2} />
                                             </div>
-                                            <h3 className="text-xl font-medium text-gray-900 mb-2">¡Pago Registrado!</h3>
-                                            <div className="flex items-center justify-center gap-2 text-[15px] text-gray-700 mb-1">
-                                                <span>{paymentMethod === "terminal" ? "💳" : "💵"}</span>
+                                            <h3 className="text-[22px] font-normal text-gray-900 mb-3">¡Pago Registrado!</h3>
+                                            <div className="flex items-center justify-center gap-2 text-[14px] text-gray-600 mb-2">
+                                                <div className={cn("inline-flex p-1 rounded-md", paymentMethod === "terminal" ? "bg-blue-50 text-blue-600" : "bg-green-50 text-green-600")}>
+                                                    {paymentMethod === "terminal" ? <CreditCard size={14} /> : <Wallet size={14} />}
+                                                </div>
                                                 <span className="tracking-tight">Efectivo — ${totalCart}</span>
                                             </div>
-                                            <p className="text-sm text-gray-500 mb-6">Comanda {orderNumber}</p>
+                                            <p className="text-[13px] text-gray-400 mb-8">Comanda #{orderNumber}</p>
 
                                             <button
                                                 onClick={sendToKitchen}
-                                                className="w-full py-4 rounded-xl font-medium text-base bg-white border border-gray-200 text-gray-800 hover:bg-gray-50 shadow-sm transition-all active:scale-[0.98]"
+                                                className="w-full py-4 rounded-[20px] font-medium text-[14px] bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-all active:scale-[0.98]"
                                             >
                                                 Enviar a cocina y mover a activos
                                             </button>
