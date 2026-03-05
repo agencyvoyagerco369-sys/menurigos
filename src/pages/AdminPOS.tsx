@@ -546,12 +546,7 @@ export default function AdminPOS() {
                                                 </button>
                                                 <button
                                                     onClick={confirmPayment}
-                                                    className={cn(
-                                                        "flex-1 py-4 rounded-xl font-bold text-[15px] text-white transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-lg",
-                                                        paymentMethod === "terminal"
-                                                            ? "bg-blue-500 hover:bg-blue-600 shadow-blue-500/30"
-                                                            : "bg-green-500 hover:bg-green-600 shadow-green-500/30"
-                                                    )}
+                                                    className="flex-1 py-4 rounded-[16px] font-semibold text-[15px] text-white bg-zinc-900 border border-zinc-800 hover:bg-black transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-xl"
                                                 >
                                                     <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>verified</span> Confirmar
                                                 </button>
@@ -585,7 +580,7 @@ export default function AdminPOS() {
 
                                             <button
                                                 onClick={sendToKitchen}
-                                                className="w-full py-5 bg-orange-500 hover:bg-orange-600 text-white text-base font-bold rounded-xl transition-all active:scale-[0.98] shadow-lg shadow-orange-500/25 flex items-center justify-center gap-3"
+                                                className="w-full py-5 bg-zinc-900 border border-zinc-800 hover:bg-black text-white text-base font-semibold rounded-[20px] transition-all active:scale-[0.98] shadow-xl flex items-center justify-center gap-3"
                                             >
                                                 <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>skillet</span>
                                                 Enviar a cocina
