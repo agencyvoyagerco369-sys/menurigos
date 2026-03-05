@@ -328,7 +328,9 @@ const OrderCard = ({ order, onAction, onCancel, isDelivery }: { order: Order; on
         isDone && "opacity-50 shadow-sm"
       )}
       style={{
-        boxShadow: !isDone ? "0 10px 40px -10px rgba(0,0,0,0.08)" : undefined
+        boxShadow: !isDone ? "0 10px 40px -10px rgba(0,0,0,0.08)" : undefined,
+        border: "1px solid rgba(0,0,0,0.06)",
+        borderLeft: `5px solid ${c.hex}`
       }}>
 
       {!isDone && <UrgencyBadge minutes={mins} />}
