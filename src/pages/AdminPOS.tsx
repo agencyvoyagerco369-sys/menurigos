@@ -521,7 +521,7 @@ export default function AdminPOS() {
                                                 </span>
                                             </div>
 
-                                            <p className="text-[14px] text-gray-600 mb-10">Comanda ##{orderNumber}</p>
+                                            <p className="text-[13px] text-gray-400 mb-8">Comanda #{orderNumber}</p>
 
                                             <button
                                                 onClick={sendToKitchen}
