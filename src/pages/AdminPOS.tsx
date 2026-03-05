@@ -484,7 +484,7 @@ export default function AdminPOS() {
                                         </div>
 
                                         {/* Total + Cobrar Button */}
-                                        <div className="bg-gray-50 rounded-2xl border border-gray-200 overflow-hidden">
+                                        <div className="rounded-2xl border-2 border-gray-200 overflow-hidden bg-white">
                                             <div className="flex justify-between items-center px-5 py-4">
                                                 <span className="text-[12px] font-bold text-gray-500 tracking-widest uppercase">Total</span>
                                                 <span className="text-2xl font-black text-gray-900">${totalCart}</span>
@@ -493,15 +493,15 @@ export default function AdminPOS() {
                                                 <button
                                                     onClick={initiateCheckout}
                                                     className={cn(
-                                                        "w-full py-4 rounded-xl font-bold text-[15px] text-white transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-lg",
+                                                        "w-full py-5 rounded-xl font-black text-[16px] text-white transition-all active:scale-[0.97] flex items-center justify-center gap-2.5 shadow-xl",
                                                         paymentMethod === "terminal"
-                                                            ? "bg-blue-500 hover:bg-blue-600 shadow-blue-500/30"
-                                                            : "bg-green-500 hover:bg-green-600 shadow-green-500/30"
+                                                            ? "bg-gradient-to-b from-blue-500 to-blue-600 shadow-blue-500/40 hover:from-blue-600 hover:to-blue-700"
+                                                            : "bg-gradient-to-b from-green-500 to-green-600 shadow-green-500/40 hover:from-green-600 hover:to-green-700"
                                                     )}
                                                 >
-                                                    {paymentMethod === "terminal" ? <CreditCard size={18} /> : <Wallet size={18} />}
+                                                    {paymentMethod === "terminal" ? <CreditCard size={20} /> : <Wallet size={20} />}
                                                     Cobrar ${totalCart}
-                                                    <ArrowRight size={16} className="ml-1" />
+                                                    <ArrowRight size={18} className="ml-1 animate-pulse" />
                                                 </button>
                                             </div>
                                         </div>
