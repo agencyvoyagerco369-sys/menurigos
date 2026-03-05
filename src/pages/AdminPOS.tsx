@@ -492,25 +492,25 @@ export default function AdminPOS() {
                                         {/* ▼ CTA Cobrar — botón tipo Apple Pay / iOS App */}
                                         <button
                                             onClick={initiateCheckout}
-                                            className="w-full mt-4 bg-[#1C1C1E] hover:bg-black active:scale-[0.98] transition-all rounded-[20px] p-4 flex items-center justify-between shadow-[0_8px_24px_rgba(0,0,0,0.15)]"
+                                            className="w-full mt-4 bg-zinc-900 border border-zinc-800 hover:bg-black active:scale-[0.98] transition-all rounded-[20px] p-4 flex items-center justify-between shadow-xl"
                                         >
                                             <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
+                                                <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center">
                                                     {paymentMethod === "terminal"
-                                                        ? <Smartphone size={24} color="white" strokeWidth={1.5} />
-                                                        : <Wallet size={24} color="white" strokeWidth={1.5} />}
+                                                        ? <Smartphone size={24} className="text-white" strokeWidth={1.5} />
+                                                        : <Wallet size={24} className="text-white" strokeWidth={1.5} />}
                                                 </div>
                                                 <div className="flex flex-col items-start">
                                                     <span className="text-[16px] font-semibold text-white tracking-tight">
-                                                        Confirmar pago
+                                                        Confirmar cobro
                                                     </span>
-                                                    <span className="text-[13px] text-gray-400 font-medium mt-0.5">
+                                                    <span className="text-[13px] text-zinc-400 font-medium mt-0.5">
                                                         Toca aquí para continuar
                                                     </span>
                                                 </div>
                                             </div>
-                                            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center mr-1">
-                                                <ChevronRight size={18} color="white" strokeWidth={2} />
+                                            <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center mr-1">
+                                                <ChevronRight size={18} className="text-white" strokeWidth={2} />
                                             </div>
                                         </button>
                                     </>
