@@ -463,7 +463,7 @@ export default function AdminPOS() {
                                                 )}
                                             >
                                                 <div className={cn("p-2.5 rounded-xl", paymentMethod === "efectivo" ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-400")}>
-                                                    <Wallet size={24} strokeWidth={2} />
+                                                    <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>payments</span>
                                                 </div>
                                                 <span className={cn("text-[13px] font-bold tracking-tight", paymentMethod === "efectivo" ? "text-green-700" : "text-gray-500")}>Efectivo</span>
                                             </button>
@@ -477,7 +477,7 @@ export default function AdminPOS() {
                                                 )}
                                             >
                                                 <div className={cn("p-2.5 rounded-xl", paymentMethod === "terminal" ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-400")}>
-                                                    <CreditCard size={24} strokeWidth={2} />
+                                                    <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>contactless</span>
                                                 </div>
                                                 <span className={cn("text-[13px] font-bold tracking-tight", paymentMethod === "terminal" ? "text-blue-700" : "text-gray-500")}>Terminal</span>
                                             </button>
@@ -497,8 +497,8 @@ export default function AdminPOS() {
                                             <div className="flex items-center gap-4">
                                                 <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center">
                                                     {paymentMethod === "terminal"
-                                                        ? <Smartphone size={24} className="text-white" strokeWidth={1.5} />
-                                                        : <Wallet size={24} className="text-white" strokeWidth={1.5} />}
+                                                        ? <span className="material-symbols-outlined text-white" style={{ fontSize: '24px' }}>contactless</span>
+                                                        : <span className="material-symbols-outlined text-white" style={{ fontSize: '24px' }}>payments</span>}
                                                 </div>
                                                 <div className="flex flex-col items-start">
                                                     <span className="text-[16px] font-semibold text-white tracking-tight">
@@ -510,7 +510,7 @@ export default function AdminPOS() {
                                                 </div>
                                             </div>
                                             <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center mr-1">
-                                                <ChevronRight size={18} className="text-white" strokeWidth={2} />
+                                                <span className="material-symbols-outlined text-white" style={{ fontSize: '18px' }}>arrow_circle_right</span>
                                             </div>
                                         </button>
                                     </>
@@ -525,7 +525,9 @@ export default function AdminPOS() {
                                         )}>
                                             <div className="flex justify-center mb-5">
                                                 <div className={cn("p-4 rounded-2xl", paymentMethod === "terminal" ? "bg-blue-100 text-blue-600" : "bg-green-100 text-green-600")}>
-                                                    {paymentMethod === "terminal" ? <CreditCard size={36} strokeWidth={1.5} /> : <Wallet size={36} strokeWidth={1.5} />}
+                                                    {paymentMethod === "terminal"
+                                                        ? <span className="material-symbols-outlined" style={{ fontSize: '36px' }}>contactless</span>
+                                                        : <span className="material-symbols-outlined" style={{ fontSize: '36px' }}>account_balance_wallet</span>}
                                                 </div>
                                             </div>
                                             <h3 className="text-xl font-black text-gray-900 mb-1">Confirmar Pago</h3>
@@ -540,7 +542,7 @@ export default function AdminPOS() {
                                                     onClick={cancelCheckout}
                                                     className="flex-shrink-0 px-5 py-4 rounded-xl border-2 border-gray-200 bg-white text-gray-700 font-bold text-sm hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
                                                 >
-                                                    <ArrowLeft size={16} strokeWidth={2.5} /> Regresar
+                                                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>arrow_back_ios_new</span> Regresar
                                                 </button>
                                                 <button
                                                     onClick={confirmPayment}
@@ -551,7 +553,7 @@ export default function AdminPOS() {
                                                             : "bg-green-500 hover:bg-green-600 shadow-green-500/30"
                                                     )}
                                                 >
-                                                    <BadgeCheck size={18} /> Confirmar
+                                                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>verified</span> Confirmar
                                                 </button>
                                             </div>
                                         </div>
@@ -564,14 +566,16 @@ export default function AdminPOS() {
                                         <div className="bg-white p-6 text-center border-2 border-green-300 rounded-2xl">
                                             <div className="flex justify-center mb-5">
                                                 <div className="p-4 rounded-full bg-green-100">
-                                                    <CheckCircle2 size={44} className="text-green-600" strokeWidth={1.8} />
+                                                    <span className="material-symbols-outlined text-green-600" style={{ fontSize: '44px' }}>task_alt</span>
                                                 </div>
                                             </div>
 
                                             <h3 className="text-xl font-black text-gray-900 mb-1">¡Pago Registrado!</h3>
 
                                             <div className="flex items-center justify-center gap-2 text-base text-gray-700 mt-3 mb-1 font-semibold">
-                                                {paymentMethod === "terminal" ? <CreditCard size={16} className="text-blue-500" /> : <Wallet size={16} className="text-green-500" />}
+                                                {paymentMethod === "terminal"
+                                                    ? <span className="material-symbols-outlined text-blue-500" style={{ fontSize: '16px' }}>contactless</span>
+                                                    : <span className="material-symbols-outlined text-green-500" style={{ fontSize: '16px' }}>payments</span>}
                                                 <span>
                                                     {paymentMethod === "terminal" ? "Terminal" : "Efectivo"} — <span className="font-black">${totalCart}</span>
                                                 </span>
@@ -583,9 +587,9 @@ export default function AdminPOS() {
                                                 onClick={sendToKitchen}
                                                 className="w-full py-5 bg-orange-500 hover:bg-orange-600 text-white text-base font-bold rounded-xl transition-all active:scale-[0.98] shadow-lg shadow-orange-500/25 flex items-center justify-center gap-3"
                                             >
-                                                <ChefHat size={22} />
+                                                <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>skillet</span>
                                                 Enviar a cocina
-                                                <ArrowRight size={18} />
+                                                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_forward_ios</span>
                                             </button>
                                             <p className="text-[10px] text-gray-400 mt-2 font-medium">El pedido pasará a la vista de pedidos activos</p>
                                         </div>
