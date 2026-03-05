@@ -166,9 +166,9 @@ const OrderItemsList = ({ items }: { items: Order["items"] }) => (
 
 /* ═══════════════════ ACTION BUTTONS ═══════════════════ */
 const ActionButtons = ({ order, onAction, onCancel, isDelivery }: { order: Order; onAction: (id: string, status: OrderStatus) => void; onCancel: (order: Order) => void; isDelivery?: boolean }) => {
-  const btnBase = "flex flex-1 items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold font-pos tracking-wide uppercase transition-all duration-150 active:scale-[0.97] shadow-sm bg-white";
+  const btnBase = "flex flex-[1_1_auto] min-w-[200px] items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold font-pos tracking-wide uppercase transition-all duration-150 active:scale-[0.97] shadow-sm bg-white";
   return (
-    <div className="flex gap-2.5">
+    <div className="flex flex-wrap gap-2.5 w-full">
       {order.status === "recibido" && (
         <button onClick={() => onAction(order.id, "preparando")}
           className={cn(btnBase, "hover:-translate-y-0.5")} style={{ border: `2px solid ${P.brand}`, color: P.brand }}>
@@ -189,7 +189,7 @@ const ActionButtons = ({ order, onAction, onCancel, isDelivery }: { order: Order
       )}
       {/* Cancel button */}
       <button onClick={() => onCancel(order)}
-        className="flex items-center justify-center gap-1.5 rounded-xl px-4 py-3.5 text-sm font-bold font-pos tracking-wide uppercase transition-all duration-150 active:scale-[0.97] shadow-sm bg-white hover:-translate-y-0.5"
+        className="flex items-center justify-center gap-1.5 rounded-xl px-4 py-3.5 text-sm font-bold font-pos tracking-wide uppercase transition-all duration-150 active:scale-[0.97] shadow-sm bg-white hover:-translate-y-0.5 shrink-0"
         style={{ color: "#EF4444", border: "2px solid rgba(239,68,68,0.3)" }}>
         <MSIcon name="delete" size={18} />
       </button>
@@ -326,7 +326,7 @@ const OrderCard = ({ order, onAction, onCancel, isDelivery }: { order: Order; on
       {!isDone && <UrgencyBadge minutes={mins} />}
 
       {/* HEADER */}
-      <div className="flex items-center justify-between px-4 py-3"
+      <div className="flex flex-wrap items-start justify-between gap-3 px-4 py-3"
         style={{ borderBottom: `1px solid ${P.border}` }}>
         <div className="flex items-center gap-3">
           {isDelivery ? (
@@ -351,18 +351,22 @@ const OrderCard = ({ order, onAction, onCancel, isDelivery }: { order: Order; on
             </div>
           </div>
         </div>
-        <div className="flex flex-col items-end gap-2">
-          <div className="flex items-center gap-2">
-            {order.paymentMethod && (
-              <span className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm"
-                style={{ background: "#10B981" }}>
-                <MSIcon name="check_circle" size={12} />
-                Pagado {order.paymentMethod === "terminal" ? "(Terminal)" : "(Efectivo)"}
-              </span>
-            )}
+        <div className="flex flex-wrap flex-1 min-w-[150px] items-center justify-end gap-2">
+          {order.paymentMethod && (
+            <span className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm shrink-0"
+              style={{ background: "#10B981" }}>
+              <MSIcon name="check_circle" size={12} />
+              Pagado {order.paymentMethod === "terminal" ? "(Terminal)" : "(Efectivo)"}
+            </span>
+          )}
+          <div className="flex shrink-0">
             <StatusBadge status={order.status} />
           </div>
-          {!isDone && <TimerBadge createdAt={order.createdAt} />}
+          {!isDone && (
+            <div className="flex shrink-0">
+              <TimerBadge createdAt={order.createdAt} />
+            </div>
+          )}
         </div>
       </div>
 
