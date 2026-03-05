@@ -557,8 +557,8 @@ const AdminOrders = () => {
     recibido: sortOld(list.filter((o) => o.status === "recibido")),
     preparando: sortOld(list.filter((o) => o.status === "preparando")),
     listo: sortOld(list.filter((o) => o.status === "listo")),
-    entregado: sortNew(list.filter((o) => o.status === "entregado")).slice(0, 5),
-    cancelado: sortNew(list.filter((o) => o.status === "cancelado")).slice(0, 5),
+    entregado: sortNew(list.filter((o) => o.status === "entregado")),
+    cancelado: sortNew(list.filter((o) => o.status === "cancelado")),
   }), []);
 
   const mesaG = useMemo(() => group(mesaOrders), [mesaOrders, group]);
