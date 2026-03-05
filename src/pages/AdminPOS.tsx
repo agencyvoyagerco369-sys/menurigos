@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { products, Product } from "@/data/products";
 import { useOrders } from "@/context/OrdersContext";
 import { T } from "@/lib/admin-theme";
-import { Plus, Minus, X, ShoppingBag, UtensilsCrossed, Trash2, Search, ChevronDown, ChevronUp, Zap, CheckCircle2, ArrowLeft, Wallet, CreditCard, CircleDollarSign, ChefHat, ArrowRight, BadgeCheck, Fingerprint, ChevronRight } from "lucide-react";
+import { Plus, Minus, X, ShoppingBag, UtensilsCrossed, Trash2, Search, ChevronDown, ChevronUp, Zap, CheckCircle2, ArrowLeft, Wallet, CreditCard, CircleDollarSign, ChefHat, ArrowRight, BadgeCheck, Fingerprint, ChevronRight, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -489,35 +489,26 @@ export default function AdminPOS() {
                                             <span className="text-2xl font-black text-gray-900">${totalCart}</span>
                                         </div>
 
-                                        {/* ▼ CTA Cobrar — Botón estilo móvil con icono */}
+                                        {/* ▼ CTA Cobrar — Botón estilo iOS/Apple Pay */}
                                         <button
                                             onClick={initiateCheckout}
-                                            className={cn(
-                                                "relative w-full rounded-2xl font-black text-white transition-all active:scale-[0.96] shadow-2xl ring-2 ring-offset-2 overflow-hidden",
-                                                paymentMethod === "terminal"
-                                                    ? "bg-gradient-to-b from-blue-500 to-blue-600 shadow-blue-500/30 ring-blue-400/50 hover:from-blue-600 hover:to-blue-700"
-                                                    : "bg-gradient-to-b from-green-500 to-green-600 shadow-green-500/30 ring-green-400/50 hover:from-green-600 hover:to-green-700"
-                                            )}
+                                            className="w-full bg-zinc-900 border border-zinc-800 rounded-[20px] shadow-xl hover:bg-black active:scale-[0.98] transition-all flex items-center gap-4 px-5 py-4"
                                         >
-                                            {/* Contenido principal del botón */}
-                                            <div className="flex items-center justify-between px-5 py-4">
-                                                {/* Icono circular tipo app */}
-                                                <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0">
-                                                    <Fingerprint size={26} strokeWidth={1.8} />
-                                                </div>
-                                                {/* Texto */}
-                                                <div className="flex flex-col items-end">
-                                                    <span className="text-[18px] font-black tracking-tight">
-                                                        Cobrar ${totalCart}
-                                                    </span>
-                                                    <span className="text-[11px] font-semibold opacity-80 tracking-wide">
-                                                        Toca para continuar
-                                                    </span>
-                                                </div>
-                                                {/* Flecha animada */}
-                                                <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0 ml-2 animate-pulse">
-                                                    <ChevronRight size={22} strokeWidth={2.5} />
-                                                </div>
+                                            {/* Icono circular */}
+                                            <div className="w-11 h-11 rounded-full bg-zinc-800 flex items-center justify-center shrink-0">
+                                                {paymentMethod === "terminal"
+                                                    ? <Smartphone size={22} className="text-white" />
+                                                    : <Wallet size={22} className="text-white" />
+                                                }
+                                            </div>
+                                            {/* Texto */}
+                                            <div className="flex flex-col items-start flex-1">
+                                                <span className="text-white text-base font-semibold leading-tight">Confirmar cobro</span>
+                                                <span className="text-zinc-400 text-[13px] leading-tight">Toca aquí para continuar</span>
+                                            </div>
+                                            {/* Flecha */}
+                                            <div className="w-9 h-9 rounded-full bg-zinc-800 flex items-center justify-center shrink-0">
+                                                <ChevronRight size={18} className="text-white" />
                                             </div>
                                         </button>
                                     </>
