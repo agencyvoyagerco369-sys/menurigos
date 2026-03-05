@@ -86,16 +86,19 @@ const TimerBadge = ({ createdAt }: { createdAt: Date }) => {
   const elapsed = useElapsed(createdAt);
   const mins = Math.floor(elapsed / 60);
   const isUrgent = mins >= 20;
-  const isWarn = mins >= 10;
+  const isWarn = mins >= 15;
 
-  const bg = isUrgent ? "#FEE2E2" : isWarn ? "#FEF3C7" : "#F3F4F6";
-  const color = isUrgent ? "#DC2626" : isWarn ? "#D97706" : "#6B7280";
+  const bg = isUrgent ? "#DC2626" : isWarn ? "#FEF3C7" : "#F3F4F6";
+  const color = isUrgent ? "#FFFFFF" : isWarn ? "#92400E" : "#6B7280";
 
   return (
     <motion.div
-      animate={isUrgent ? { scale: [1, 1.02, 1] } : {}}
-      transition={isUrgent ? { repeat: Infinity, duration: 2 } : {}}
-      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-pos-mono text-[13px] font-bold tabular-nums shadow-sm"
+      animate={isUrgent ? { scale: [1, 1.03, 1] } : {}}
+      transition={isUrgent ? { repeat: Infinity, duration: 1.5 } : {}}
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-pos-mono text-[13px] font-extrabold tabular-nums shadow-sm",
+        isUrgent && "shadow-md"
+      )}
       style={{ background: bg, color }}>
       <MSIcon name="timer" size={14} />
       {fmt(elapsed)}
