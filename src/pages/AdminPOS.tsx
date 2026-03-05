@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { products, Product } from "@/data/products";
 import { useOrders } from "@/context/OrdersContext";
 import { T } from "@/lib/admin-theme";
-import { Plus, Minus, X, ShoppingBag, UtensilsCrossed, Trash2, Search, ChevronDown, ChevronUp, Zap, CheckCircle2, ArrowLeft, Wallet, CreditCard, CircleDollarSign, ChefHat, ArrowRight, BadgeCheck, Smartphone, ChevronRight } from "lucide-react";
+import { Plus, Minus, X, ShoppingBag, UtensilsCrossed, Trash2, Search, ChevronDown, ChevronUp, Zap, CheckCircle2, ArrowLeft, Wallet, CreditCard, CircleDollarSign, ChefHat, ArrowRight, BadgeCheck, Fingerprint, ChevronRight, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -489,10 +489,10 @@ export default function AdminPOS() {
                                             <span className="text-2xl font-black text-gray-900">${totalCart}</span>
                                         </div>
 
-                                        {/* ▼ CTA Cobrar — botón tipo Apple Pay / iOS App */}
+                                        {/* ▼ CTA Cobrar — Botón estilo iOS/Apple Pay */}
                                         <button
                                             onClick={initiateCheckout}
-                                            className="w-full mt-4 bg-zinc-900 border border-zinc-800 hover:bg-black active:scale-[0.98] transition-all rounded-[20px] p-4 flex items-center justify-between shadow-xl"
+                                            className="w-full bg-zinc-900 border border-zinc-800 rounded-[20px] shadow-xl hover:bg-black active:scale-[0.98] transition-all flex items-center gap-4 px-5 py-4"
                                         >
                                             <div className="flex items-center gap-4">
                                                 <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center">
