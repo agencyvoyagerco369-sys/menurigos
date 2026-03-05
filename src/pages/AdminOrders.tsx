@@ -530,7 +530,7 @@ const AdminOrders = () => {
   const handleAction = useCallback((id: string, status: OrderStatus) => {
     if (status === "entregado") {
       const order = orders.find((o) => o.id === id);
-      if (order && order.orderType === "mesa") { setPaymentOrder(order); return; }
+      if (order && order.orderType === "mesa" && !order.paymentMethod) { setPaymentOrder(order); return; }
     }
     updateOrderStatus(id, status);
   }, [orders, updateOrderStatus]);
