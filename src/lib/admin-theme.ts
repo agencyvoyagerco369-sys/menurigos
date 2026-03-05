@@ -37,6 +37,7 @@ export const STATUS = {
   preparando: { hex: "#F59E0B", bg: "rgba(245,158,11,0.12)", text: "#FBBF24", label: "En cocina", border: "#F59E0B" },
   listo: { hex: "#10B981", bg: "rgba(16,185,129,0.12)", text: "#34D399", label: "Listo", border: "#10B981" },
   entregado: { hex: "#6B7280", bg: "rgba(107,114,128,0.12)", text: "#9CA3AF", label: "Entregado", border: "#6B7280" },
+  cancelado: { hex: "#EF4444", bg: "rgba(239,68,68,0.12)", text: "#F87171", label: "Cancelado", border: "#EF4444" },
 } as const;
 
 /** Accent colors for metrics/stats */
