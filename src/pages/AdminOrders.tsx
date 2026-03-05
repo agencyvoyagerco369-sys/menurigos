@@ -47,9 +47,9 @@ const StatusBadge = ({ status }: { status: OrderStatus }) => {
   const c = STATE_COLORS[status];
   const icon = STATUS_ICONS[status];
   return (
-    <span className="inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-[11px] font-bold font-pos uppercase tracking-wide"
-      style={{ background: c.bg, color: c.text }}>
-      <MSIcon name={icon} size={14} />
+    <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold font-pos uppercase tracking-wide text-white shadow-sm"
+      style={{ background: c.hex }}>
+      <MSIcon name={icon} size={13} />
       {c.label}
     </span>
   );
@@ -88,17 +88,16 @@ const TimerBadge = ({ createdAt }: { createdAt: Date }) => {
   const isUrgent = mins >= 20;
   const isWarn = mins >= 10;
 
-  const bg = isUrgent ? "rgba(212,43,43,0.15)" : isWarn ? "rgba(245,158,11,0.15)" : "rgba(212,43,43,0.08)";
-  const border = isUrgent ? "#D42B2B" : isWarn ? "#F59E0B" : "#D42B2B";
-  const color = isUrgent ? "#F87171" : isWarn ? "#FBBF24" : "#D42B2B";
+  const bg = isUrgent ? "#FEE2E2" : isWarn ? "#FEF3C7" : "#F3F4F6";
+  const color = isUrgent ? "#DC2626" : isWarn ? "#D97706" : "#6B7280";
 
   return (
     <motion.div
-      animate={isUrgent ? { scale: [1, 1.03, 1] } : {}}
+      animate={isUrgent ? { scale: [1, 1.02, 1] } : {}}
       transition={isUrgent ? { repeat: Infinity, duration: 2 } : {}}
-      className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-pos-mono text-sm font-bold tabular-nums"
-      style={{ background: bg, border: `1px solid ${border}`, color }}>
-      <MSIcon name="schedule" size={14} />
+      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-pos-mono text-[13px] font-bold tabular-nums shadow-sm"
+      style={{ background: bg, color }}>
+      <MSIcon name="timer" size={14} />
       {fmt(elapsed)}
     </motion.div>
   );
@@ -349,20 +348,17 @@ const OrderCard = ({ order, onAction, onCancel, isDelivery }: { order: Order; on
             </div>
           </div>
         </div>
-        <div className="flex flex-col items-end gap-1.5">
+        <div className="flex flex-col items-end gap-2">
           <div className="flex items-center gap-2">
             {order.paymentMethod && (
-              <span className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider" style={{ background: "#D1FAE5", color: "#065F46", border: "1px solid #A7F3D0" }}>
-                💰 Pagado {order.paymentMethod === "terminal" ? "(Terminal)" : "(Efectivo)"}
+              <span className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm"
+                style={{ background: "#10B981" }}>
+                <MSIcon name="check_circle" size={12} />
+                Pagado {order.paymentMethod === "terminal" ? "(Terminal)" : "(Efectivo)"}
               </span>
             )}
             <StatusBadge status={order.status} />
           </div>
-          {!isDone && (
-            <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider" style={{ color: P.textDim }}>
-              <span>CRONÓMETRO</span>
-            </div>
-          )}
           {!isDone && <TimerBadge createdAt={order.createdAt} />}
         </div>
       </div>
