@@ -1,6 +1,6 @@
 import { useOrders } from "@/context/OrdersContext";
 import { T, STATUS, ACCENT } from "@/lib/admin-theme";
-import { DollarSign, UtensilsCrossed, Truck, Banknote, CreditCard } from "lucide-react";
+import { DollarSign, UtensilsCrossed, Truck, Banknote, CreditCard, Smartphone } from "lucide-react";
 
 const AdminCashRegister = () => {
   const { orders } = useOrders();
@@ -14,8 +14,10 @@ const AdminCashRegister = () => {
 
   const efectivo = delivered.filter((o) => o.paymentMethod === "efectivo");
   const transferencia = delivered.filter((o) => o.paymentMethod === "transferencia");
+  const terminal = delivered.filter((o) => o.paymentMethod === "terminal");
   const totalEfectivo = efectivo.reduce((s, o) => s + o.total, 0);
   const totalTransferencia = transferencia.reduce((s, o) => s + o.total, 0);
+  const totalTerminal = terminal.reduce((s, o) => s + o.total, 0);
 
   const cards = [
     { label: "Ventas en Mesa", value: totalMesa, count: mesaOrders.length, icon: UtensilsCrossed, color: ACCENT.blue },
@@ -25,7 +27,8 @@ const AdminCashRegister = () => {
 
   const paymentCards = [
     { label: "Efectivo", value: totalEfectivo, count: efectivo.length, icon: Banknote, color: ACCENT.green },
-    { label: "Transferencia", value: totalTransferencia, count: transferencia.length, icon: CreditCard, color: ACCENT.blue },
+    { label: "Transferencia", value: totalTransferencia, count: transferencia.length, icon: Smartphone, color: ACCENT.blue },
+    { label: "Terminal", value: totalTerminal, count: terminal.length, icon: CreditCard, color: ACCENT.purple },
   ];
 
   return (
@@ -56,7 +59,7 @@ const AdminCashRegister = () => {
       {/* Por método de pago */}
       <div>
         <h3 className="mb-3 text-sm font-bold uppercase tracking-wider" style={{ color: T.textDim }}>Por método de pago</h3>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-3">
           {paymentCards.map((c) => (
             <div key={c.label} className="rounded-xl p-5 transition-all duration-150"
               style={{ background: T.card, border: `1px solid ${T.border}` }}>
@@ -101,10 +104,10 @@ const AdminCashRegister = () => {
                       <td className="px-4 py-3">
                         <span className="inline-flex items-center gap-1.5 rounded px-2 py-0.5 text-xs font-bold capitalize"
                           style={{
-                            background: o.paymentMethod === "efectivo" ? "rgba(16,185,129,0.12)" : "rgba(59,130,246,0.12)",
-                            color: o.paymentMethod === "efectivo" ? "#34D399" : "#60A5FA",
+                            background: o.paymentMethod === "efectivo" ? "rgba(16,185,129,0.12)" : o.paymentMethod === "terminal" ? "rgba(167,139,250,0.12)" : "rgba(59,130,246,0.12)",
+                            color: o.paymentMethod === "efectivo" ? "#34D399" : o.paymentMethod === "terminal" ? "#A78BFA" : "#60A5FA",
                           }}>
-                          {o.paymentMethod === "efectivo" ? <Banknote size={12} strokeWidth={2} /> : <CreditCard size={12} strokeWidth={2} />}
+                          {o.paymentMethod === "efectivo" ? <Banknote size={12} strokeWidth={2} /> : o.paymentMethod === "terminal" ? <CreditCard size={12} strokeWidth={2} /> : <Smartphone size={12} strokeWidth={2} />}
                           {o.paymentMethod || "—"}
                         </span>
                       </td>

@@ -8,7 +8,7 @@ import { useState, useMemo } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, PieChart, Pie, Cell, Tooltip as RechartsTooltip } from "recharts";
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const chartConfig: ChartConfig = { pedidos: { label: "Pedidos", color: ACCENT.blue } };
@@ -44,6 +44,24 @@ const AdminReports = () => {
       else { map.set(key, { name: item.product.name, category: item.product.category, qty: item.quantity, revenue: item.unitPrice * item.quantity }); }
     }));
     return Array.from(map.values()).sort((a, b) => b.qty - a.qty).slice(0, 10);
+  }, [dayOrders]);
+
+  const paymentStats = useMemo(() => {
+    let cash = 0;
+    let transfer = 0;
+    let terminal = 0;
+    dayOrders.forEach((o) => {
+      if (o.paymentMethod === "efectivo") cash += o.total;
+      else if (o.paymentMethod === "transferencia") transfer += o.total;
+      else if (o.paymentMethod === "terminal") terminal += o.total;
+      // Default to cash if no method selected
+      else cash += o.total;
+    });
+    return [
+      { name: "Efectivo", value: cash, color: ACCENT.green },
+      { name: "Transferencia", value: transfer, color: ACCENT.blue },
+      { name: "Terminal", value: terminal, color: ACCENT.purple },
+    ].filter((item) => item.value > 0);
   }, [dayOrders]);
 
   const categorySales = useMemo(() => {
@@ -113,22 +131,76 @@ const AdminReports = () => {
         ))}
       </div>
 
-      {/* Hourly chart */}
-      <div className="rounded-xl p-5" style={{ background: T.card, border: `1px solid ${T.border}` }}>
-        <h3 className="mb-4 text-base font-bold" style={{ color: T.text }}>Pedidos por hora</h3>
-        {dayOrders.length === 0 ? (
-          <p className="py-12 text-center text-sm" style={{ color: T.textDim }}>Sin datos para esta fecha</p>
-        ) : (
-          <ChartContainer config={chartConfig} className="h-[260px] w-full">
-            <BarChart data={hourlyData} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke={T.border} />
-              <XAxis dataKey="hour" tick={{ fontSize: 11, fill: T.textDim }} tickLine={false} axisLine={false} />
-              <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: T.textDim }} tickLine={false} axisLine={false} />
-              <ChartTooltip content={<ChartTooltipContent />} />
-              <Bar dataKey="pedidos" radius={[6, 6, 0, 0]} fill={ACCENT.blue} />
-            </BarChart>
-          </ChartContainer>
-        )}
+      {/* Charts Grid */}
+      <div className="grid gap-5 lg:grid-cols-3">
+        {/* Hourly chart */}
+        <div className="rounded-xl p-5 lg:col-span-2" style={{ background: T.card, border: `1px solid ${T.border}` }}>
+          <h3 className="mb-4 text-base font-bold" style={{ color: T.text }}>Pedidos por hora</h3>
+          {dayOrders.length === 0 ? (
+            <p className="py-12 text-center text-sm" style={{ color: T.textDim }}>Sin datos para esta fecha</p>
+          ) : (
+            <ChartContainer config={chartConfig} className="h-[260px] w-full">
+              <BarChart data={hourlyData} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={T.border} />
+                <XAxis dataKey="hour" tick={{ fontSize: 11, fill: T.textDim }} tickLine={false} axisLine={false} />
+                <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: T.textDim }} tickLine={false} axisLine={false} />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Bar dataKey="pedidos" radius={[6, 6, 0, 0]} fill={ACCENT.blue} />
+              </BarChart>
+            </ChartContainer>
+          )}
+        </div>
+
+        {/* Payment Methods Donut Chart */}
+        <div className="flex flex-col items-center justify-between rounded-xl p-5 lg:col-span-1" style={{ background: T.card, border: `1px solid ${T.border}` }}>
+          <h3 className="w-full text-left text-base font-bold" style={{ color: T.text }}>Ingresos por Método</h3>
+
+          {paymentStats.length === 0 ? (
+            <p className="flex-1 flex items-center justify-center text-sm" style={{ color: T.textDim }}>Sin datos</p>
+          ) : (
+            <>
+              <div className="relative flex h-[200px] w-full items-center justify-center">
+                <PieChart width={200} height={200}>
+                  <Pie
+                    data={paymentStats}
+                    innerRadius={60}
+                    outerRadius={85}
+                    paddingAngle={3}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {paymentStats.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip
+                    formatter={(value: number) => [`$${value.toLocaleString()}`, "Ingreso"]}
+                    contentStyle={{ backgroundColor: T.card, border: `1px solid ${T.border}`, borderRadius: '8px', color: T.text }}
+                    itemStyle={{ color: T.text, fontWeight: 'bold' }}
+                  />
+                </PieChart>
+                {/* Center text */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: T.textDim }}>Total</span>
+                  <span className="text-xl font-extrabold" style={{ color: T.text }}>${totalSales.toLocaleString()}</span>
+                </div>
+              </div>
+
+              {/* Legend */}
+              <div className="w-full mt-4 space-y-2">
+                {paymentStats.map((stat) => (
+                  <div key={stat.name} className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <div className="h-3 w-3 rounded-full" style={{ background: stat.color }} />
+                      <span className="font-semibold" style={{ color: T.textMuted }}>{stat.name}</span>
+                    </div>
+                    <span className="font-pos-mono font-bold" style={{ color: T.text }}>${stat.value.toLocaleString()}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2">
