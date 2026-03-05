@@ -184,7 +184,13 @@ const ActionButtons = ({ order, onAction, onCancel, isDelivery }: { order: Order
       {order.status === "listo" && (
         <button onClick={() => onAction(order.id, "entregado")}
           className={cn(btnBase, "hover:-translate-y-0.5")} style={{ background: order.paymentMethod ? "#10B981" : "#3B82F6", color: "#FFFFFF" }}>
-          <MSIcon name="package" size={18} /> {isDelivery ? "Marcar Entregado" : order.paymentMethod ? "✅ Entregar" : "Cobrar"}
+          {isDelivery ? (
+            <><MSIcon name="local_shipping" size={18} /> Marcar Entregado</>
+          ) : order.paymentMethod ? (
+            <><MSIcon name="task_alt" size={18} /> Entregar</>
+          ) : (
+            <><MSIcon name="payments" size={18} /> Cobrar</>
+          )}
         </button>
       )}
       {/* Cancel button */}
