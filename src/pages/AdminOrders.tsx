@@ -112,12 +112,12 @@ const TimerBadge = ({ createdAt }: { createdAt: Date }) => {
 const StatCard = ({ label, value, icon, color, isBrand }: {
   label: string; value: string | number; icon: string; color: string; isBrand?: boolean;
 }) => (
-  <div className="flex items-center gap-4 border-r last:border-r-0 px-5 py-4 lg:px-7 lg:py-5"
+  <div className="flex flex-1 items-center justify-center gap-3 border-r last:border-r-0 py-4 lg:py-5 min-w-[160px]"
     style={{ borderColor: P.border }}>
-    <div className="flex h-10 w-10 items-center justify-center rounded-lg" style={{ background: `${color}18` }}>
+    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg" style={{ background: `${color}18` }}>
       <MSIcon name={icon} size={22} style={{ color }} />
     </div>
-    <div>
+    <div className="flex flex-col">
       <p className="text-[11px] font-bold uppercase tracking-[0.08em] font-pos" style={{ color: P.textDim }}>{label}</p>
       <p className="text-[28px] font-extrabold leading-tight font-pos" style={{ color: isBrand ? P.brand : P.text }}>{value}</p>
     </div>
