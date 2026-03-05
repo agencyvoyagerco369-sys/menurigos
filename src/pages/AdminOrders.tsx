@@ -74,8 +74,10 @@ const UrgencyBadge = ({ minutes }: { minutes: number }) => {
 /* ═══════════════════ MESA AVATAR ═══════════════════ */
 // MESA_COLORS imported from admin-theme
 const MesaAvatar = ({ num }: { num: number }) => {
+  const color = MESA_COLORS[(num - 1) % MESA_COLORS.length];
   return (
-    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[17px] font-black font-pos text-gray-800 shadow-sm border border-gray-100 bg-gray-50">
+    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[17px] font-black font-pos text-white shadow-sm"
+      style={{ background: color }}>
       {num}
     </div>
   );
