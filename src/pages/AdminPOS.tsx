@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { products, Product } from "@/data/products";
 import { useOrders } from "@/context/OrdersContext";
 import { T } from "@/lib/admin-theme";
-import { Plus, Minus, X, ShoppingBag, UtensilsCrossed, Trash2, Search, ChevronDown, ChevronUp, Zap, CheckCircle2, ArrowLeft, Wallet, CreditCard } from "lucide-react";
+import { Plus, Minus, X, ShoppingBag, UtensilsCrossed, Trash2, Search, ChevronDown, ChevronUp, Zap, CheckCircle2, ArrowLeft, Wallet, CreditCard, CircleDollarSign, ChefHat, ArrowRight, BadgeCheck } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -318,9 +318,14 @@ export default function AdminPOS() {
                 {/* SCROLLABLE AREA: Items + Footer */}
                 <div className="flex-1 overflow-y-auto p-3 flex flex-col min-h-0">
                     {cart.length === 0 ? (
-                        <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
-                            <UtensilsCrossed size={36} className="opacity-20 mb-3" />
-                            <p className="font-bold text-gray-500 text-center text-sm">Toca un producto<br />para agregarlo aquí</p>
+                        <div className="flex-1 flex flex-col items-center justify-center text-gray-400 gap-3">
+                            <div className="w-16 h-16 rounded-full bg-orange-50 flex items-center justify-center">
+                                <UtensilsCrossed size={28} className="text-orange-300" />
+                            </div>
+                            <div className="text-center">
+                                <p className="font-bold text-gray-500 text-sm">Paso 1 — Agrega productos</p>
+                                <p className="text-xs text-gray-400 mt-1">Toca un producto del menú para empezar</p>
+                            </div>
                         </div>
                     ) : (
                         <>
@@ -413,56 +418,90 @@ export default function AdminPOS() {
                             {/* Payment Method & Checkout Block (Flows with scroll) */}
                             <div className="mt-6 flex flex-col gap-4">
 
+                                {/* ── Step Progress Indicator ── */}
+                                <div className="flex items-center justify-center gap-2 px-2">
+                                    {[
+                                        { num: 1, label: "Productos", done: cart.length > 0, active: checkoutStep === null },
+                                        { num: 2, label: "Cobrar", done: checkoutStep === "confirm" || checkoutStep === "paid", active: checkoutStep === "confirm" },
+                                        { num: 3, label: "Cocina", done: checkoutStep === "paid", active: checkoutStep === "paid" },
+                                    ].map((step, i) => (
+                                        <div key={step.num} className="flex items-center gap-2 flex-1">
+                                            <div className={cn(
+                                                "w-7 h-7 rounded-full flex items-center justify-center text-xs font-black shrink-0 transition-all",
+                                                step.done && !step.active ? "bg-green-500 text-white" :
+                                                step.active ? "bg-orange-500 text-white shadow-md shadow-orange-500/30 scale-110" :
+                                                "bg-gray-200 text-gray-400"
+                                            )}>
+                                                {step.done && !step.active ? <BadgeCheck size={14} /> : step.num}
+                                            </div>
+                                            <span className={cn("text-[10px] font-bold", step.active ? "text-orange-600" : step.done ? "text-green-600" : "text-gray-400")}>
+                                                {step.label}
+                                            </span>
+                                            {i < 2 && <div className={cn("flex-1 h-0.5 rounded-full", step.done && !step.active ? "bg-green-400" : "bg-gray-200")} />}
+                                        </div>
+                                    ))}
+                                </div>
+
                                 {/* ═══ STEP: Normal (select payment + cobrar button) ═══ */}
                                 {checkoutStep === null && (
                                     <>
+                                        {/* Instructional label */}
+                                        <div className="flex items-center gap-2 px-1">
+                                            <CircleDollarSign size={16} className="text-orange-500" />
+                                            <span className="text-xs font-bold text-gray-600">Paso 2 — Selecciona método de pago</span>
+                                        </div>
+
                                         {/* Payment Selector */}
-                                        <div className="grid grid-cols-2 gap-3 mt-2">
+                                        <div className="grid grid-cols-2 gap-3">
                                             <button
                                                 onClick={() => setPaymentMethod("efectivo")}
                                                 className={cn(
-                                                    "py-5 rounded-3xl flex flex-col items-center justify-center gap-3 transition-all",
+                                                    "py-5 rounded-2xl flex flex-col items-center justify-center gap-3 transition-all",
                                                     paymentMethod === "efectivo"
-                                                        ? "bg-white border-2 border-green-500 shadow-sm"
-                                                        : "bg-white border border-gray-100 text-gray-500 hover:border-gray-200"
+                                                        ? "bg-green-50 border-2 border-green-500 shadow-md shadow-green-500/15"
+                                                        : "bg-white border border-gray-200 text-gray-500 hover:border-gray-300"
                                                 )}
                                             >
-                                                <div className={cn("p-2 rounded-xl", paymentMethod === "efectivo" ? "bg-green-50 text-green-600" : "bg-gray-50 text-gray-400")}>
+                                                <div className={cn("p-2.5 rounded-xl", paymentMethod === "efectivo" ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-400")}>
                                                     <Wallet size={24} strokeWidth={2} />
                                                 </div>
-                                                <span className="text-[13px] font-medium tracking-tight">Efectivo</span>
+                                                <span className={cn("text-[13px] font-bold tracking-tight", paymentMethod === "efectivo" ? "text-green-700" : "text-gray-500")}>Efectivo</span>
                                             </button>
                                             <button
                                                 onClick={() => setPaymentMethod("terminal")}
                                                 className={cn(
-                                                    "py-5 rounded-3xl flex flex-col items-center justify-center gap-3 transition-all",
+                                                    "py-5 rounded-2xl flex flex-col items-center justify-center gap-3 transition-all",
                                                     paymentMethod === "terminal"
-                                                        ? "bg-white border-2 border-blue-500 shadow-sm"
-                                                        : "bg-white border border-gray-100 text-gray-500 hover:border-gray-200"
+                                                        ? "bg-blue-50 border-2 border-blue-500 shadow-md shadow-blue-500/15"
+                                                        : "bg-white border border-gray-200 text-gray-500 hover:border-gray-300"
                                                 )}
                                             >
-                                                <div className={cn("p-2 rounded-xl", paymentMethod === "terminal" ? "bg-blue-50 text-blue-600" : "bg-gray-50 text-gray-400")}>
+                                                <div className={cn("p-2.5 rounded-xl", paymentMethod === "terminal" ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-400")}>
                                                     <CreditCard size={24} strokeWidth={2} />
                                                 </div>
-                                                <span className="text-[13px] font-medium tracking-tight">Terminal</span>
+                                                <span className={cn("text-[13px] font-bold tracking-tight", paymentMethod === "terminal" ? "text-blue-700" : "text-gray-500")}>Terminal</span>
                                             </button>
                                         </div>
 
                                         {/* Total + Cobrar Button */}
-                                        <div className="bg-white rounded-[24px] border border-gray-100 p-1">
+                                        <div className="bg-gray-50 rounded-2xl border border-gray-200 overflow-hidden">
                                             <div className="flex justify-between items-center px-5 py-4">
-                                                <span className="text-[12px] font-semibold text-gray-500 tracking-widest">TOTAL</span>
-                                                <span className="text-[22px] font-normal text-gray-900">${totalCart}</span>
+                                                <span className="text-[12px] font-bold text-gray-500 tracking-widest uppercase">Total</span>
+                                                <span className="text-2xl font-black text-gray-900">${totalCart}</span>
                                             </div>
-                                            <div className="px-1 pb-1">
+                                            <div className="px-3 pb-3">
                                                 <button
                                                     onClick={initiateCheckout}
                                                     className={cn(
-                                                        "w-full py-4 rounded-[20px] font-medium text-[15px] text-white transition-all active:scale-[0.98]",
-                                                        paymentMethod === "terminal" ? "bg-blue-500" : "bg-green-500"
+                                                        "w-full py-4 rounded-xl font-bold text-[15px] text-white transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-lg",
+                                                        paymentMethod === "terminal"
+                                                            ? "bg-blue-500 hover:bg-blue-600 shadow-blue-500/30"
+                                                            : "bg-green-500 hover:bg-green-600 shadow-green-500/30"
                                                     )}
                                                 >
-                                                    Cobrar
+                                                    {paymentMethod === "terminal" ? <CreditCard size={18} /> : <Wallet size={18} />}
+                                                    Cobrar ${totalCart}
+                                                    <ArrowRight size={16} className="ml-1" />
                                                 </button>
                                             </div>
                                         </div>
@@ -472,32 +511,39 @@ export default function AdminPOS() {
                                 {/* ═══ STEP: Confirm Payment ═══ */}
                                 {checkoutStep === "confirm" && (
                                     <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                        <div className="bg-white rounded-[32px] p-8 text-center border border-gray-100">
-                                            <div className="flex justify-center mb-6">
-                                                <div className={cn("p-4 rounded-2xl", paymentMethod === "terminal" ? "bg-blue-50 text-blue-600" : "bg-green-50 text-green-600")}>
-                                                    {paymentMethod === "terminal" ? <CreditCard size={32} strokeWidth={1.5} /> : <Wallet size={32} strokeWidth={1.5} />}
+                                        <div className={cn(
+                                            "rounded-2xl p-8 text-center border-2",
+                                            paymentMethod === "terminal" ? "bg-blue-50 border-blue-200" : "bg-green-50 border-green-200"
+                                        )}>
+                                            <div className="flex justify-center mb-5">
+                                                <div className={cn("p-4 rounded-2xl", paymentMethod === "terminal" ? "bg-blue-100 text-blue-600" : "bg-green-100 text-green-600")}>
+                                                    {paymentMethod === "terminal" ? <CreditCard size={36} strokeWidth={1.5} /> : <Wallet size={36} strokeWidth={1.5} />}
                                                 </div>
                                             </div>
-                                            <h3 className="text-xl font-normal text-gray-900 mb-1">Confirmar Pago</h3>
-                                            <p className="text-[14px] text-gray-500 mb-8">Pago en {paymentMethod === "terminal" ? "Terminal" : "Efectivo"}</p>
+                                            <h3 className="text-xl font-black text-gray-900 mb-1">Confirmar Pago</h3>
+                                            <p className={cn("text-sm font-semibold mb-6", paymentMethod === "terminal" ? "text-blue-600" : "text-green-600")}>
+                                                Pago en {paymentMethod === "terminal" ? "Terminal" : "Efectivo"}
+                                            </p>
 
-                                            <div className="text-[26px] font-normal text-gray-900 mb-10">${totalCart}</div>
+                                            <div className="text-3xl font-black text-gray-900 mb-8">${totalCart}</div>
 
-                                            <div className="flex gap-2.5">
+                                            <div className="flex gap-3">
                                                 <button
                                                     onClick={cancelCheckout}
-                                                    className="flex-shrink-0 px-5 rounded-[20px] border border-gray-200 text-gray-700 font-medium text-[14px] hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
+                                                    className="flex-shrink-0 px-5 py-4 rounded-xl border-2 border-gray-200 bg-white text-gray-700 font-bold text-sm hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
                                                 >
-                                                    <ArrowLeft size={16} strokeWidth={2} /> Regresar
+                                                    <ArrowLeft size={16} strokeWidth={2.5} /> Regresar
                                                 </button>
                                                 <button
                                                     onClick={confirmPayment}
                                                     className={cn(
-                                                        "flex-1 py-4 rounded-[20px] font-medium text-[14px] text-white transition-all active:scale-[0.98]",
-                                                        paymentMethod === "terminal" ? "bg-blue-500" : "bg-green-500"
+                                                        "flex-1 py-4 rounded-xl font-bold text-[15px] text-white transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-lg",
+                                                        paymentMethod === "terminal"
+                                                            ? "bg-blue-500 hover:bg-blue-600 shadow-blue-500/30"
+                                                            : "bg-green-500 hover:bg-green-600 shadow-green-500/30"
                                                     )}
                                                 >
-                                                    Confirmar
+                                                    <BadgeCheck size={18} /> Confirmar
                                                 </button>
                                             </div>
                                         </div>
@@ -507,28 +553,33 @@ export default function AdminPOS() {
                                 {/* ═══ STEP: Payment Done → Send to Kitchen ═══ */}
                                 {checkoutStep === "paid" && (
                                     <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                        <div className="bg-white p-6 text-center border border-gray-100 rounded-md">
-                                            <div className="flex justify-center mb-8">
-                                                <CheckCircle2 size={44} className="text-gray-800" strokeWidth={1.5} />
+                                        <div className="bg-white p-6 text-center border-2 border-green-300 rounded-2xl">
+                                            <div className="flex justify-center mb-5">
+                                                <div className="p-4 rounded-full bg-green-100">
+                                                    <CheckCircle2 size={44} className="text-green-600" strokeWidth={1.8} />
+                                                </div>
                                             </div>
 
-                                            <h3 className="text-xl font-normal text-gray-800 mb-6 tracking-normal">¡Pago Registrado!</h3>
+                                            <h3 className="text-xl font-black text-gray-900 mb-1">¡Pago Registrado!</h3>
 
-                                            <div className="flex items-center justify-center gap-3 text-[17px] text-gray-800 mb-4">
-                                                {paymentMethod === "terminal" ? <CreditCard size={18} strokeWidth={1.5} /> : <Wallet size={18} strokeWidth={1.5} />}
-                                                <span className="font-normal tracking-tight">
-                                                    {paymentMethod === "terminal" ? "Terminal" : "Efectivo"} — ${totalCart}
+                                            <div className="flex items-center justify-center gap-2 text-base text-gray-700 mt-3 mb-1 font-semibold">
+                                                {paymentMethod === "terminal" ? <CreditCard size={16} className="text-blue-500" /> : <Wallet size={16} className="text-green-500" />}
+                                                <span>
+                                                    {paymentMethod === "terminal" ? "Terminal" : "Efectivo"} — <span className="font-black">${totalCart}</span>
                                                 </span>
                                             </div>
 
-                                            <p className="text-[13px] text-gray-400 mb-8">Comanda #{orderNumber}</p>
+                                            <p className="text-xs text-gray-400 font-bold mb-6">Comanda {orderNumber}</p>
 
                                             <button
                                                 onClick={sendToKitchen}
-                                                className="w-full py-5 border border-gray-200 bg-white text-[16px] text-gray-800 font-normal hover:bg-gray-50 transition-all active:scale-[0.98] rounded-sm"
+                                                className="w-full py-5 bg-orange-500 hover:bg-orange-600 text-white text-base font-bold rounded-xl transition-all active:scale-[0.98] shadow-lg shadow-orange-500/25 flex items-center justify-center gap-3"
                                             >
-                                                Enviar a cocina y mover a activos
+                                                <ChefHat size={22} />
+                                                Enviar a cocina
+                                                <ArrowRight size={18} />
                                             </button>
+                                            <p className="text-[10px] text-gray-400 mt-2 font-medium">El pedido pasará a la vista de pedidos activos</p>
                                         </div>
                                     </div>
                                 )}
