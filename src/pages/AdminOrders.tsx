@@ -128,7 +128,7 @@ const StatCard = ({ label, value, icon, color, isBrand }: {
 const OrderItemsList = ({ items }: { items: Order["items"] }) => (
   <div className="space-y-0.5 px-1 pb-1">
     {items.map((item, idx) => (
-      <div key={item.id} className="flex items-start justify-between gap-3 py-3"
+      <div key={item.id} className="flex items-start justify-between gap-3 py-3.5 cursor-default"
         style={{ borderBottom: idx !== items.length - 1 ? `1px solid ${P.border}` : "none" }}>
         <div className="flex items-start gap-4 w-full">
           <span className="mt-0 flex h-[26px] min-w-[26px] shrink-0 items-center justify-center rounded-full text-[13px] font-black font-pos"
@@ -591,7 +591,7 @@ const AdminOrders = () => {
   ];
 
   return (
-    <div className="min-h-screen -m-4 -mt-2 lg:-m-6 lg:-mt-2 font-pos" style={{ background: P.bg, lineHeight: 1.6 }}>
+    <div className="min-h-screen -m-4 -mt-2 lg:-m-6 lg:-mt-2 pb-24 lg:pb-12 font-pos" style={{ background: P.bg, lineHeight: 1.6 }}>
 
       <div className="flex flex-wrap" style={{ background: P.card, borderBottom: `1px solid ${P.border}` }}>
         <StatCard label="Pedidos hoy" value={orders.length} icon="shopping_cart" color="#3B82F6" />
@@ -607,7 +607,7 @@ const AdminOrders = () => {
             const active = viewMode === tab.key;
             return (
               <button key={tab.key} onClick={() => setViewMode(tab.key)}
-                className="relative flex items-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold font-pos transition-all duration-150"
+                className="relative flex flex-1 sm:flex-none items-center justify-center gap-2 rounded-md px-5 py-3 min-h-[48px] text-[15px] font-semibold font-pos transition-all duration-150 active:scale-[0.97]"
                 style={{
                   background: active ? "rgba(0,0,0,0.05)" : "transparent",
                   color: active ? P.text : P.textDim,
@@ -641,7 +641,7 @@ const AdminOrders = () => {
                   </div>
                 </div>
                 <button onClick={() => setViewMode("mesas")}
-                  className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold font-pos transition-all duration-150"
+                  className="flex items-center gap-1.5 rounded-lg px-4 py-2.5 min-h-[44px] text-sm font-bold font-pos transition-all duration-150 active:scale-[0.97]"
                   style={{ background: "rgba(59,130,246,0.12)", color: "#60A5FA", border: "1px solid rgba(59,130,246,0.2)" }}>
                   Ver todo <MSIcon name="arrow_outward" size={12} />
                 </button>
@@ -663,7 +663,7 @@ const AdminOrders = () => {
                   </div>
                 </div>
                 <button onClick={() => setViewMode("domicilio")}
-                  className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold font-pos transition-all duration-150"
+                  className="flex items-center gap-1.5 rounded-lg px-4 py-2.5 min-h-[44px] text-sm font-bold font-pos transition-all duration-150 active:scale-[0.97]"
                   style={{ background: "rgba(124,58,237,0.12)", color: "#A78BFA", border: "1px solid rgba(124,58,237,0.2)" }}>
                   Ver todo <MSIcon name="arrow_outward" size={12} />
                 </button>
