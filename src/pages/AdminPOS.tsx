@@ -560,8 +560,8 @@ export default function AdminPOS() {
                                     <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                                         <div className="bg-white p-6 text-center border-2 border-green-300 rounded-2xl">
                                             <div className="flex justify-center mb-5">
-                                                <div className="p-4 rounded-full bg-green-100">
-                                                    <span className="material-symbols-outlined text-green-600" style={{ fontSize: '44px' }}>task_alt</span>
+                                                <div className="p-4 rounded-full bg-green-100" style={{ backgroundColor: '#dcfce7' }}>
+                                                    <span className="material-symbols-outlined text-green-600" style={{ fontSize: '44px', color: '#16a34a' }}>task_alt</span>
                                                 </div>
                                             </div>
 
