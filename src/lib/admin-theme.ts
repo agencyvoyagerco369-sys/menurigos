@@ -5,11 +5,11 @@
 
 export const T = {
   // Backgrounds
-  bg: "#F9FAFB", // Gris muy claro casi blanco
+  bg: "#F2F2F7", // Gris sistema de iOS para profundidad
   card: "#FFFFFF",
-  cardElevated: "#F3F4F6",
+  cardElevated: "#FFFFFF",
   surface: "#FFFFFF",
-  input: "#F9FAFB",
+  input: "#FFFFFF",
 
   // Borders
   border: "#E5E7EB",

@@ -322,11 +322,11 @@ const OrderCard = ({ order, onAction, onCancel, isDelivery }: { order: Order; on
       transition={{ duration: 0.2 }}
       className={cn(
         "relative overflow-hidden rounded-2xl font-pos transition-all duration-150 bg-white",
-        !isDone && "hover:-translate-y-0.5 shadow-md",
+        !isDone && "hover:-translate-y-0.5",
         isDone && "opacity-50 shadow-sm"
       )}
       style={{
-        border: `1px solid ${P.border}`
+        boxShadow: !isDone ? "0 10px 40px -10px rgba(0,0,0,0.08)" : undefined
       }}>
 
       {!isDone && <UrgencyBadge minutes={mins} />}
