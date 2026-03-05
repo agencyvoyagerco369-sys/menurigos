@@ -16,6 +16,7 @@ const statusIndex: Record<OrderStatus, number> = {
   preparando: 1,
   listo: 2,
   entregado: 3,
+  cancelado: -1,
 };
 
 const OrderTracking = () => {
