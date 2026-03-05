@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useCallback, useEffect, use
 import { CartItem, OrderType } from "./CartContext";
 import { supabase } from "@/integrations/supabase/client";
 
-export type OrderStatus = "recibido" | "preparando" | "listo" | "entregado";
+export type OrderStatus = "recibido" | "preparando" | "listo" | "entregado" | "cancelado";
 
 export interface DeliveryDetails {
   type: "casa" | "departamento";
@@ -37,6 +37,7 @@ interface OrdersContextType {
   orders: Order[];
   addOrder: (order: Omit<Order, "id" | "createdAt" | "status">) => Promise<string>;
   updateOrderStatus: (id: string, status: OrderStatus) => void;
+  cancelOrder: (id: string) => void;
   getOrder: (id: string) => Order | undefined;
 }
 
@@ -256,13 +257,30 @@ export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     []
   );
 
+  const cancelOrder = useCallback(
+    async (id: string) => {
+      const order = ordersRef.current.find((o) => o.id === id);
+      if (!order?.dbId) {
+        setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status: "cancelado" as OrderStatus } : o)));
+        return;
+      }
+      setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status: "cancelado" as OrderStatus } : o)));
+      const { error } = await supabase.from("orders").update({ status: "cancelado" }).eq("id", order.dbId);
+      if (error) {
+        console.error("Error cancelling order:", error);
+        setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status: order.status } : o)));
+      }
+    },
+    []
+  );
+
   const getOrder = useCallback(
     (id: string) => ordersRef.current.find((o) => o.id === id),
     []
   );
 
   return (
-    <OrdersContext.Provider value={{ orders, addOrder, updateOrderStatus, getOrder }}>
+    <OrdersContext.Provider value={{ orders, addOrder, updateOrderStatus, cancelOrder, getOrder }}>
       {children}
     </OrdersContext.Provider>
   );
