@@ -368,7 +368,7 @@ const OrderCard = ({ order, onAction, onCancel, isDelivery }: { order: Order; on
             <span className="inline-flex items-center gap-1 rounded-full px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wide whitespace-nowrap text-white shadow-sm shrink-0"
               style={{ background: "#10B981" }}>
               <MSIcon name="check_circle" size={14} />
-              Pagado {order.paymentMethod === "terminal" ? "(Term)" : "(Efec)"}
+              Pagado
             </span>
           )}
           <div className="flex shrink-0">
