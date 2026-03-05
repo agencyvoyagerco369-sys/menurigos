@@ -426,18 +426,34 @@ export default function AdminPOS() {
                                         { num: 3, label: "Cocina", done: checkoutStep === "paid", active: checkoutStep === "paid" },
                                     ].map((step, i) => (
                                         <div key={step.num} className="flex items-center gap-2 flex-1">
-                                            <div className={cn(
-                                                "w-7 h-7 rounded-full flex items-center justify-center text-xs font-black shrink-0 transition-all",
-                                                step.done && !step.active ? "bg-green-500 text-white" :
-                                                    step.active ? "bg-orange-500 text-white shadow-md shadow-orange-500/30 scale-110" :
-                                                        "bg-gray-200 text-gray-400"
-                                            )}>
-                                                {step.done && !step.active ? <BadgeCheck size={14} /> : step.num}
+                                            <div
+                                                className={cn(
+                                                    "w-7 h-7 rounded-full flex items-center justify-center text-xs font-black shrink-0 transition-all text-white",
+                                                    step.active ? "shadow-md scale-110" : "",
+                                                    !(step.done || step.active) ? "bg-gray-200 text-gray-500" : ""
+                                                )}
+                                                style={{
+                                                    ...(step.done && !step.active ? { backgroundColor: '#16a34a', color: 'white' } : {}),
+                                                    ...(step.active ? { backgroundColor: '#111827', color: 'white' } : {})
+                                                }}
+                                            >
+                                                {step.done && !step.active ? <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>check</span> : step.num}
                                             </div>
-                                            <span className={cn("text-[10px] font-bold", step.active ? "text-orange-600" : step.done ? "text-green-600" : "text-gray-400")}>
+                                            <span
+                                                className={cn("text-[10px] font-bold", !(step.done || step.active) ? "text-gray-400" : "")}
+                                                style={{
+                                                    ...(step.active ? { color: '#111827' } : {}),
+                                                    ...(step.done && !step.active ? { color: '#16a34a' } : {})
+                                                }}
+                                            >
                                                 {step.label}
                                             </span>
-                                            {i < 2 && <div className={cn("flex-1 h-0.5 rounded-full", step.done && !step.active ? "bg-green-400" : "bg-gray-200")} />}
+                                            {i < 2 && (
+                                                <div
+                                                    className={cn("flex-1 h-0.5 rounded-full", !(step.done && !step.active) ? "bg-gray-200" : "")}
+                                                    style={{ ...(step.done && !step.active ? { backgroundColor: '#4ade80' } : {}) }}
+                                                />
+                                            )}
                                         </div>
                                     ))}
                                 </div>
