@@ -564,13 +564,19 @@ const AdminOrders = () => {
   const totalRevenue = orders.reduce((s, o) => s + o.total, 0);
   const avgTicket = orders.length > 0 ? Math.round(totalRevenue / orders.length) : 0;
 
-  const group = useCallback((list: Order[]) => ({
-    recibido: sortOld(list.filter((o) => o.status === "recibido")),
-    preparando: sortOld(list.filter((o) => o.status === "preparando")),
-    listo: sortOld(list.filter((o) => o.status === "listo")),
-    entregado: sortNew(list.filter((o) => o.status === "entregado")).slice(0, 5),
-    cancelado: sortNew(list.filter((o) => o.status === "cancelado")).slice(0, 5),
-  }), []);
+  const ONE_HOUR = 60 * 60 * 1000;
+  const now = Date.now();
+
+  const group = useCallback((list: Order[]) => {
+    const recentDone = (o: Order) => now - o.createdAt.getTime() < ONE_HOUR;
+    return {
+      recibido: sortOld(list.filter((o) => o.status === "recibido")),
+      preparando: sortOld(list.filter((o) => o.status === "preparando")),
+      listo: sortOld(list.filter((o) => o.status === "listo")),
+      entregado: sortNew(list.filter((o) => o.status === "entregado" && recentDone(o))).slice(0, 5),
+      cancelado: sortNew(list.filter((o) => o.status === "cancelado" && recentDone(o))).slice(0, 5),
+    };
+  }, [now]);
 
   const mesaG = useMemo(() => group(mesaOrders), [mesaOrders, group]);
   const delG = useMemo(() => group(deliveryOrders), [deliveryOrders, group]);
