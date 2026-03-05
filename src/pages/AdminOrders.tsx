@@ -336,37 +336,39 @@ const OrderCard = ({ order, onAction, onCancel, isDelivery }: { order: Order; on
       {!isDone && <UrgencyBadge minutes={mins} />}
 
       {/* HEADER */}
-      <div className="flex flex-wrap items-start justify-between gap-3 px-4 py-3"
+      <div className="flex flex-col items-center gap-4 px-4 py-5"
         style={{ borderBottom: `1px solid ${P.border}` }}>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 w-full justify-center">
           {isDelivery ? (
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full shadow-sm border" style={{ borderColor: "#EDE9FE", background: "#F5F3FF" }}>
-              <MSIcon name="local_shipping" size={22} style={{ color: "#8B5CF6" }} />
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full shadow-sm border" style={{ borderColor: "#EDE9FE", background: "#F5F3FF" }}>
+              <MSIcon name="local_shipping" size={24} style={{ color: "#8B5CF6" }} />
             </div>
           ) : (
             <MesaAvatar num={order.tableNumber || 0} />
           )}
-          <div>
-            <h3 className="text-lg font-extrabold font-pos leading-tight" style={{ color: P.text }}>
+          <div className="flex flex-col items-start justify-center">
+            <h3 className="text-[22px] font-extrabold font-pos leading-none" style={{ color: P.text }}>
               {isDelivery ? "Domicilio" : `Mesa ${order.tableNumber}`}
             </h3>
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className="text-[10px] font-medium font-pos uppercase tracking-wider" style={{ color: P.textDim }}>
+            <div className="flex items-center gap-2 mt-1.5">
+              <span className="text-[11px] font-bold font-pos uppercase tracking-widest" style={{ color: P.textDim }}>
                 ORDEN
               </span>
-              <span className="inline-flex items-center gap-1 rounded px-2 py-0.5 font-pos-mono text-[11px] font-semibold"
-                style={{ background: "rgba(0,0,0,0.05)", color: P.textMuted }}>
+              <span className="inline-flex items-center gap-1 rounded bg-gray-100 px-2 py-0.5 font-pos-mono text-[11px] font-semibold"
+                style={{ color: P.textMuted }}>
                 #{order.id.slice(0, 8).toUpperCase()}
               </span>
             </div>
           </div>
         </div>
-        <div className="flex flex-wrap flex-1 min-w-[150px] items-center justify-end gap-2">
+
+        {/* BADGES */}
+        <div className="flex flex-wrap items-center justify-center gap-2 w-full pt-1">
           {order.paymentMethod && (
-            <span className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm shrink-0"
+            <span className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide text-white shadow-sm shrink-0"
               style={{ background: "#10B981" }}>
-              <MSIcon name="check_circle" size={12} />
-              Pagado {order.paymentMethod === "terminal" ? "(Terminal)" : "(Efectivo)"}
+              <MSIcon name="check_circle" size={14} />
+              Pagado {order.paymentMethod === "terminal" ? "(Term)" : "(Efec)"}
             </span>
           )}
           <div className="flex shrink-0">
