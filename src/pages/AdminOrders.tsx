@@ -166,31 +166,31 @@ const OrderItemsList = ({ items }: { items: Order["items"] }) => (
 
 /* ═══════════════════ ACTION BUTTONS ═══════════════════ */
 const ActionButtons = ({ order, onAction, onCancel, isDelivery }: { order: Order; onAction: (id: string, status: OrderStatus) => void; onCancel: (order: Order) => void; isDelivery?: boolean }) => {
-  const btnBase = "flex flex-[1_1_auto] min-w-[200px] items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold font-pos tracking-wide uppercase transition-all duration-150 active:scale-[0.97] shadow-sm bg-white";
+  const btnBase = "flex flex-[1_1_auto] min-w-[200px] items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold font-pos tracking-wide uppercase transition-all duration-150 active:scale-[0.97] shadow-sm";
   return (
     <div className="flex flex-wrap gap-2.5 w-full">
       {order.status === "recibido" && (
         <button onClick={() => onAction(order.id, "preparando")}
-          className={cn(btnBase, "hover:-translate-y-0.5")} style={{ border: `2px solid ${P.brand}`, color: P.brand }}>
+          className={cn(btnBase, "hover:-translate-y-0.5")} style={{ background: P.brand, color: "#FFFFFF" }}>
           <MSIcon name="skillet" size={18} /> Preparar Pedido
         </button>
       )}
       {order.status === "preparando" && (
         <button onClick={() => onAction(order.id, "listo")}
-          className={cn(btnBase, "hover:-translate-y-0.5")} style={{ border: "2px solid #10B981", color: "#10B981" }}>
+          className={cn(btnBase, "hover:-translate-y-0.5")} style={{ background: "#10B981", color: "#FFFFFF" }}>
           <MSIcon name="task_alt" size={18} /> Marcar Listo
         </button>
       )}
       {order.status === "listo" && (
         <button onClick={() => onAction(order.id, "entregado")}
-          className={cn(btnBase, "hover:-translate-y-0.5")} style={{ border: `2px solid ${order.paymentMethod ? "#10B981" : "#3B82F6"}`, color: order.paymentMethod ? "#10B981" : "#3B82F6" }}>
+          className={cn(btnBase, "hover:-translate-y-0.5")} style={{ background: order.paymentMethod ? "#10B981" : "#3B82F6", color: "#FFFFFF" }}>
           <MSIcon name="package" size={18} /> {isDelivery ? "Marcar Entregado" : order.paymentMethod ? "✅ Entregar" : "Cobrar"}
         </button>
       )}
       {/* Cancel button */}
       <button onClick={() => onCancel(order)}
-        className="flex items-center justify-center gap-1.5 rounded-xl px-4 py-3.5 text-sm font-bold font-pos tracking-wide uppercase transition-all duration-150 active:scale-[0.97] shadow-sm bg-white hover:-translate-y-0.5 shrink-0"
-        style={{ color: "#EF4444", border: "2px solid rgba(239,68,68,0.3)" }}>
+        className="flex items-center justify-center gap-1.5 rounded-xl px-4 py-3.5 text-sm font-bold font-pos tracking-wide uppercase transition-all duration-150 active:scale-[0.97] shadow-sm hover:-translate-y-0.5 shrink-0"
+        style={{ background: "#FEF2F2", color: "#DC2626", border: "1px solid #FCA5A5" }}>
         <MSIcon name="delete" size={18} />
       </button>
     </div>
