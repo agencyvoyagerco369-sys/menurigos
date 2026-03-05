@@ -492,10 +492,10 @@ export default function AdminPOS() {
                                         {/* ▼ CTA Cobrar — Botón estilo iOS/Apple Pay */}
                                         <button
                                             onClick={initiateCheckout}
-                                            className="w-full bg-zinc-900 border border-zinc-800 rounded-[20px] shadow-xl hover:bg-black active:scale-[0.98] transition-all flex items-center gap-4 px-5 py-4"
+                                            className="w-full bg-gray-900 border border-gray-800 rounded-[20px] shadow-xl hover:bg-black active:scale-[0.98] transition-all flex items-center gap-4 px-5 py-4"
                                         >
                                             <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center">
+                                                <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center">
                                                     {paymentMethod === "terminal"
                                                         ? <span className="material-symbols-outlined text-white" style={{ fontSize: '24px' }}>contactless</span>
                                                         : <span className="material-symbols-outlined text-white" style={{ fontSize: '24px' }}>payments</span>}
@@ -504,12 +504,12 @@ export default function AdminPOS() {
                                                     <span className="text-[16px] font-semibold text-white tracking-tight">
                                                         Confirmar cobro
                                                     </span>
-                                                    <span className="text-[13px] text-zinc-400 font-medium mt-0.5">
+                                                    <span className="text-[13px] text-gray-400 font-medium mt-0.5">
                                                         Toca aquí para continuar
                                                     </span>
                                                 </div>
                                             </div>
-                                            <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center mr-1">
+                                            <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center mr-1">
                                                 <span className="material-symbols-outlined text-white" style={{ fontSize: '18px' }}>arrow_circle_right</span>
                                             </div>
                                         </button>
@@ -546,7 +546,7 @@ export default function AdminPOS() {
                                                 </button>
                                                 <button
                                                     onClick={confirmPayment}
-                                                    className="flex-1 py-4 rounded-[16px] font-semibold text-[15px] text-white bg-zinc-900 border border-zinc-800 hover:bg-black transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-xl"
+                                                    className="flex-1 py-4 rounded-[16px] font-semibold text-[15px] text-white bg-gray-900 border border-gray-800 hover:bg-black transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-xl"
                                                 >
                                                     <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>verified</span> Confirmar
                                                 </button>
@@ -580,7 +580,7 @@ export default function AdminPOS() {
 
                                             <button
                                                 onClick={sendToKitchen}
-                                                className="w-full py-5 bg-zinc-900 border border-zinc-800 hover:bg-black text-white text-base font-semibold rounded-[20px] transition-all active:scale-[0.98] shadow-xl flex items-center justify-center gap-3"
+                                                className="w-full py-5 bg-gray-900 border border-gray-800 hover:bg-black text-white text-base font-semibold rounded-[20px] transition-all active:scale-[0.98] shadow-xl flex items-center justify-center gap-3"
                                             >
                                                 <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>skillet</span>
                                                 Enviar a cocina
