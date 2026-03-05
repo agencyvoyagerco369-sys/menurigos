@@ -38,6 +38,7 @@ interface OrdersContextType {
   addOrder: (order: Omit<Order, "id" | "createdAt" | "status">) => Promise<string>;
   updateOrderStatus: (id: string, status: OrderStatus) => void;
   cancelOrder: (id: string) => void;
+  deleteOrder: (id: string) => void;
   getOrder: (id: string) => Order | undefined;
 }
 
@@ -168,6 +169,16 @@ export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           );
         }
       )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "orders" },
+        (payload) => {
+          const row = payload.old as any;
+          if (row?.id) {
+            setOrders((prev) => prev.filter((o) => o.dbId !== row.id));
+          }
+        }
+      )
       .subscribe((status) => {
         if (status === "CHANNEL_ERROR") {
           console.warn("Realtime channel error, will auto-reconnect");
@@ -260,15 +271,37 @@ export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const cancelOrder = useCallback(
     async (id: string) => {
       const order = ordersRef.current.find((o) => o.id === id);
-      if (!order?.dbId) {
-        setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status: "cancelado" as OrderStatus } : o)));
-        return;
+      // Optimistic: remove from local state immediately
+      setOrders((prev) => prev.filter((o) => o.id !== id));
+
+      if (order?.dbId) {
+        // Delete from Supabase (order_items cascade-deletes)
+        const { error } = await supabase.from("orders").delete().eq("id", order.dbId);
+        if (error) {
+          console.error("Error deleting order:", error);
+          // If delete fails, try updating status as fallback
+          const { error: updateError } = await supabase.from("orders").update({ status: "cancelado" }).eq("id", order.dbId);
+          if (updateError) {
+            console.error("Fallback status update also failed:", updateError);
+          }
+          // Don't re-add, keep it removed from UI
+        }
       }
-      setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status: "cancelado" as OrderStatus } : o)));
-      const { error } = await supabase.from("orders").update({ status: "cancelado" }).eq("id", order.dbId);
-      if (error) {
-        console.error("Error cancelling order:", error);
-        setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status: order.status } : o)));
+    },
+    []
+  );
+
+  const deleteOrder = useCallback(
+    async (id: string) => {
+      const order = ordersRef.current.find((o) => o.id === id);
+      // Optimistic: remove from local state immediately
+      setOrders((prev) => prev.filter((o) => o.id !== id));
+
+      if (order?.dbId) {
+        const { error } = await supabase.from("orders").delete().eq("id", order.dbId);
+        if (error) {
+          console.error("Error deleting order:", error);
+        }
       }
     },
     []
@@ -280,7 +313,7 @@ export const OrdersProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   );
 
   return (
-    <OrdersContext.Provider value={{ orders, addOrder, updateOrderStatus, cancelOrder, getOrder }}>
+    <OrdersContext.Provider value={{ orders, addOrder, updateOrderStatus, cancelOrder, deleteOrder, getOrder }}>
       {children}
     </OrdersContext.Provider>
   );
