@@ -589,12 +589,11 @@ const AdminOrders = () => {
   return (
     <div className="min-h-screen -m-4 -mt-2 lg:-m-6 lg:-mt-2 font-pos" style={{ background: P.bg, lineHeight: 1.6 }}>
 
-      {/* ── STATS BAR ── */}
       <div className="flex flex-wrap" style={{ background: P.card, borderBottom: `1px solid ${P.border}` }}>
         <StatCard label="Pedidos hoy" value={orders.length} icon="shopping_cart" color="#3B82F6" />
         <StatCard label="Activos" value={totalActive} icon="bolt" color="#F59E0B" />
-        <StatCard label="Ventas" value={`$${totalRevenue.toLocaleString()}`} icon="trending_up" color={P.brand} isBrand />
-        <StatCard label="Ticket promedio" value={`$${avgTicket}`} icon="payments" color="#10B981" />
+        <StatCard label="Ventas" value={`$${totalRevenue.toLocaleString()}`} icon="trending_up" color="#10B981" />
+        <StatCard label="Ticket promedio" value={`$${avgTicket}`} icon="payments" color="#8B5CF6" />
       </div>
 
       <div className="space-y-5 p-5 lg:p-7">
