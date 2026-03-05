@@ -483,28 +483,33 @@ export default function AdminPOS() {
                                             </button>
                                         </div>
 
-                                        {/* Total + Cobrar Button */}
-                                        <div className="rounded-2xl border-2 border-gray-200 overflow-hidden bg-white">
-                                            <div className="flex justify-between items-center px-5 py-4">
-                                                <span className="text-[12px] font-bold text-gray-500 tracking-widest uppercase">Total</span>
-                                                <span className="text-2xl font-black text-gray-900">${totalCart}</span>
-                                            </div>
-                                            <div className="px-3 pb-3">
-                                                <button
-                                                    onClick={initiateCheckout}
-                                                    className={cn(
-                                                        "w-full py-5 rounded-xl font-black text-[16px] text-white transition-all active:scale-[0.97] flex items-center justify-center gap-2.5 shadow-xl",
-                                                        paymentMethod === "terminal"
-                                                            ? "bg-gradient-to-b from-blue-500 to-blue-600 shadow-blue-500/40 hover:from-blue-600 hover:to-blue-700"
-                                                            : "bg-gradient-to-b from-green-500 to-green-600 shadow-green-500/40 hover:from-green-600 hover:to-green-700"
-                                                    )}
-                                                >
-                                                    {paymentMethod === "terminal" ? <CreditCard size={20} /> : <Wallet size={20} />}
-                                                    Cobrar ${totalCart}
-                                                    <ArrowRight size={18} className="ml-1 animate-pulse" />
-                                                </button>
-                                            </div>
+                                        {/* Total */}
+                                        <div className="rounded-2xl border border-gray-100 overflow-hidden bg-gray-50 px-5 py-4 flex justify-between items-center">
+                                            <span className="text-[12px] font-bold text-gray-400 tracking-widest uppercase">Total</span>
+                                            <span className="text-2xl font-black text-gray-900">${totalCart}</span>
                                         </div>
+
+                                        {/* ▼ CTA Cobrar — botón grande y claro */}
+                                        <button
+                                            onClick={initiateCheckout}
+                                            className={cn(
+                                                "relative w-full py-5 rounded-2xl font-black text-[17px] text-white transition-all active:scale-[0.96] flex flex-col items-center justify-center gap-1 shadow-2xl ring-2 ring-offset-2",
+                                                paymentMethod === "terminal"
+                                                    ? "bg-gradient-to-b from-blue-500 to-blue-600 shadow-blue-500/30 ring-blue-400/50 hover:from-blue-600 hover:to-blue-700"
+                                                    : "bg-gradient-to-b from-green-500 to-green-600 shadow-green-500/30 ring-green-400/50 hover:from-green-600 hover:to-green-700"
+                                            )}
+                                        >
+                                            {/* Fila principal */}
+                                            <span className="flex items-center gap-2.5">
+                                                {paymentMethod === "terminal" ? <CreditCard size={22} /> : <Wallet size={22} />}
+                                                Cobrar ${totalCart}
+                                                <ArrowRight size={18} className="animate-pulse" />
+                                            </span>
+                                            {/* Sub-texto guía */}
+                                            <span className="text-[11px] font-semibold tracking-wide opacity-80">
+                                                Toca aquí para continuar →
+                                            </span>
+                                        </button>
                                     </>
                                 )}
 
