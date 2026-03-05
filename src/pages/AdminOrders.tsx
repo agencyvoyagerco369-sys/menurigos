@@ -459,7 +459,18 @@ const OrderCard = ({ order, onAction, onCancel, isDelivery }: { order: Order; on
               <XCircle size={16} strokeWidth={2.5} /> Pedido Cancelado
             </div>
           )}
-          {!isDone && <ActionButtons order={order} onAction={onAction} onCancel={onCancel} isDelivery={isDelivery} />}
+          {order.status !== "cancelado" && (
+            <div className="flex gap-2.5">
+              {!isDone && <ActionButtons order={order} onAction={onAction} onCancel={onCancel} isDelivery={isDelivery} />}
+              {order.status === "entregado" && (
+                <button onClick={() => onCancel(order)}
+                  className="flex flex-1 items-center justify-center gap-1.5 rounded-lg px-4 py-3.5 text-sm font-bold font-pos tracking-wide uppercase transition-all duration-150 active:scale-[0.97] shadow-sm hover:brightness-110"
+                  style={{ background: "rgba(239,68,68,0.12)", color: "#EF4444", border: "1px solid rgba(239,68,68,0.25)" }}>
+                  <Trash2 size={16} strokeWidth={2.5} /> Cancelar Pedido
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </motion.div>
@@ -470,7 +481,7 @@ const OrderCard = ({ order, onAction, onCancel, isDelivery }: { order: Order; on
 const KanbanCol = ({ status, orders, renderCard }: {
   status: OrderStatus; orders: Order[]; renderCard: (o: Order) => React.ReactNode;
 }) => {
-  if (orders.length === 0 && status === "entregado") return null;
+  if (orders.length === 0 && (status === "entregado" || status === "cancelado")) return null;
   const c = STATE_COLORS[status];
   const Icon = STATUS_ICONS[status];
   return (
